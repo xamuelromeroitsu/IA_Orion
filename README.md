@@ -2,7 +2,6 @@
 
 ## Participantes
 
-- Ana Anselmi
 - Jeily Baudino
 - Xamuel Romero
 - Oliver Osio
