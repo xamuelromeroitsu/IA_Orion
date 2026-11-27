@@ -125,4 +125,4 @@ T0.3 → T1.2 → T5.3 → T5.1 → T5.2
 | ID | Tarea | Estado |
 | --- | --- | --- |
 | T5.3 | Alinear políticas RLS y esquema con los repositorios de la API | Done |
-| T6.3 | Ensayo final: demo completa y revisión de secretos en Git | En Progreso |
+| T6.3 | Ensayo final: demo completa y revisión de secretos en Git | Done |
