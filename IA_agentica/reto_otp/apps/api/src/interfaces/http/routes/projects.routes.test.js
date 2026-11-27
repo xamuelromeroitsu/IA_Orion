@@ -8,6 +8,14 @@ import {
 } from '../../../infrastructure/container.js';
 import { projectsRouter } from './projects.routes.js';
 
+vi.mock('../../../infrastructure/config.js', () => ({
+  env: {
+    ALLOWED_MIME: 'application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    MAX_PROPOSALS: 20
+  },
+  supabaseKey: ''
+}));
+
 vi.mock('../../../infrastructure/container.js', () => ({
   analysisRepository: {},
   createAuditor: vi.fn(() => ({})),
