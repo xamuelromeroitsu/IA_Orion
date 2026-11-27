@@ -5,6 +5,8 @@ import { ArrowRight, FolderOpen, TrendingUp } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
 import MagicBento from '../components/MagicBento'
 import ProjectForm from '../components/ProjectForm'
+import ShinyText from '../components/ShinyText'
+import SplitFlapText from '../components/SplitFlapText'
 import StatusBadge from '../components/StatusBadge'
 import Stepper from '../components/Stepper'
 import TcoChart from '../components/TcoChart'
@@ -99,8 +101,28 @@ export default function DashboardPage() {
 
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">Centro de mando</p>
-          <h2 className="mt-1 text-2xl font-bold text-orion-text">Panel de evaluación de propuestas</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">
+            <ShinyText
+              text="Centro de mando"
+              color="#b5b5b5"
+              shineColor="#ffffff"
+              speed={2}
+              shineWidth={40}
+              softness={0.8}
+              trigger="loop"
+            />
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-orion-text">
+            <ShinyText
+              text="Panel de evaluación de propuestas"
+              color="#E8F0FA"
+              shineColor="#FACC15"
+              speed={2}
+              shineWidth={40}
+              softness={0.8}
+              trigger="loop"
+            />
+          </h2>
           <p className="mt-1 text-sm text-slate-300">Auditoría financiera, trazabilidad y dictamen en un solo lugar.</p>
         </div>
         {rates?.rateUsd ? (
@@ -110,6 +132,44 @@ export default function DashboardPage() {
             <span className="ml-2 text-slate-400">{rates.effectiveDate ?? ''}</span>
           </div>
         ) : null}
+      </section>
+
+      <section className="orion-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Flujo operativo ORION">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">
+            <ShinyText
+              text="Flujo operativo"
+              color="#b5b5b5"
+              shineColor="#ffffff"
+              speed={2}
+              shineWidth={40}
+              softness={0.8}
+              trigger="loop"
+            />
+          </p>
+          <p className="mt-1 text-sm text-slate-300">Proyecto → documentos → evaluación → dictamen</p>
+        </div>
+        <SplitFlapText
+          words={['ORION READY', 'AUDIT LIVE', 'TCO SYNC']}
+          flipDuration={0.12}
+          stagger={0.06}
+          cycleDelay={2400}
+          charset="alphanumeric"
+          flipsPerChar={8}
+          order="left"
+          align="left"
+          tileStyle="board"
+          tileColor="#102A4C"
+          textColor="#FACC15"
+          glare={0.15}
+          depth={0.5}
+          tileRadius={8}
+          gap={6}
+          fontSize="clamp(20px, 3vw, 38px)"
+          loop
+          padTo={12}
+          intro
+        />
       </section>
 
       <MagicBento
