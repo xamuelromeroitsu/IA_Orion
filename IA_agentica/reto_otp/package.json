@@ -1,0 +1,26 @@
+{
+  "name": "orion-evaluador-propuestas",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,yellow \"npm:dev --workspace @orion/api\" \"npm:dev --workspace @orion/web\"",
+    "dev:api": "npm run dev --workspace @orion/api",
+    "dev:web": "npm run dev --workspace @orion/web",
+    "build": "npm run build --workspace @orion/web",
+    "lint": "npm run lint --workspace @orion/api && npm run lint --workspace @orion/web",
+    "test": "npm run test --workspace @orion/api",
+    "batch": "npm run batch --workspace @orion/api",
+    "db:migrate": "npm run db:migrate --workspace @orion/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
