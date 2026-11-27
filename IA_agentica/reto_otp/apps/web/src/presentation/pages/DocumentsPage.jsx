@@ -87,6 +87,7 @@ export default function DocumentsPage() {
                 key={analysis.id}
                 analysis={analysis}
                 document={documents.find((document) => document.id === analysis.documentId)}
+                budgetReferenceUsd={activeProject.budgetReferenceUsd}
               />
             ))}
           </div>
