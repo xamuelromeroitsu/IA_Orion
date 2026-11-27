@@ -4,6 +4,7 @@ import { checkScope } from '../../domain/rules/scopeCheck.js';
 import { evaluateDiscard } from '../../domain/rules/discard.js';
 import { computeTco } from '../../domain/rules/tco.js';
 import { rankAnalyses } from '../../domain/rules/ranking.js';
+import { checkBudget } from '../../domain/rules/budgetCheck.js';
 
 export class EvaluateBatchUseCase {
   constructor({
@@ -64,6 +65,7 @@ export class EvaluateBatchUseCase {
       const tco = computeTco(analysis, rate.rateUsd);
       const hiddenCostsUsd = tco.hiddenCostsUsd().toNumber();
       const tcoUsd = tco.totalUsd().toNumber();
+      const budget = checkBudget({ tcoUsd }, project);
 
       let marketFindings = [];
       const marketQueries = (analysis.items ?? []).slice(0, 2).map((item) => item.description);
@@ -92,9 +94,9 @@ export class EvaluateBatchUseCase {
         tcoUsd,
         hiddenCostsUsd,
         declaredTotalUsd: analysis.declaredTotal,
-        isDiscarded: discard.isDiscarded,
-        reasons: discard.reasons,
-        findings: [...discard.findings, ...marketFindings]
+        isDiscarded: discard.isDiscarded || !budget.isWithinBudget,
+        reasons: [...discard.reasons, ...budget.reasons],
+        findings: [...discard.findings, ...budget.findings, ...marketFindings]
       });
     }
 
