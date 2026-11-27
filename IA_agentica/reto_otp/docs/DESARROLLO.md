@@ -54,6 +54,7 @@ La planificación de épicas y tareas está en [AGILE_PLAN.md](AGILE_PLAN.md).
 ```dotenv
 PORT=4000
 TZ=America/Caracas
+LOG_LEVEL=info
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 SUPABASE_PUBLISHABLE_KEY=

@@ -20,6 +20,7 @@ for (const candidate of candidatePaths) {
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   TZ: z.string().default('America/Caracas'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   SUPABASE_URL: z.string().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
   SUPABASE_PUBLISHABLE_KEY: z.string().optional(),

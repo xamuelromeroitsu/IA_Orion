@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
-import { asyncRoute } from '../middleware/errors.js';
-import { requireRole } from '../middleware/auth.js';
+import { asyncRoute } from '../../middleware/errors.js';
+import { requireRole } from '../../middleware/auth.js';
 import {
   analysisRepository,
   documentRepository,
@@ -10,9 +10,9 @@ import {
   eventBus,
   recordHumanReviewUseCase,
   scopedPublisher
-} from '../../infrastructure/container.js';
-import { buildExecutivePdf } from '../../infrastructure/reporting/PdfExporter.js';
-import { buildComparisonCsv, buildComparisonXlsx } from '../../infrastructure/reporting/TabularExporter.js';
+} from '../../../infrastructure/container.js';
+import { buildExecutivePdf } from '../../../infrastructure/reporting/PdfExporter.js';
+import { buildComparisonCsv, buildComparisonXlsx } from '../../../infrastructure/reporting/TabularExporter.js';
 
 export const evaluationsRouter = Router();
 

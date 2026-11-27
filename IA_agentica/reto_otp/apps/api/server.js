@@ -1,5 +1,6 @@
 import { createApp } from './src/interfaces/http/app.js';
-import { env, logger, supabaseKey } from './src/infrastructure/config.js';
+import { env, supabaseKey } from './src/infrastructure/config.js';
+import { logger } from './src/infrastructure/container.js';
 
 const app = createApp();
 const server = app.listen(env.PORT, () => {

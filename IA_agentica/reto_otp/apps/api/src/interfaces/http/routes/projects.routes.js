@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { asyncRoute } from '../middleware/errors.js';
-import { requireRole } from '../middleware/auth.js';
-import { uploadMany } from '../middleware/upload.js';
+import { asyncRoute } from '../../middleware/errors.js';
+import { requireRole } from '../../middleware/auth.js';
+import { uploadMany } from '../../middleware/upload.js';
 import {
   analysisRepository,
   createAuditor,
@@ -9,10 +9,10 @@ import {
   documentStore,
   eventBus,
   exchangeRatePort
-} from '../../infrastructure/container.js';
-import { extractDocument } from '../../infrastructure/parsing/TextExtractor.js';
-import { AnalyzeDocumentUseCase } from '../../application/useCases/AnalyzeDocumentUseCase.js';
-import { manageProjectWorkflowUseCase } from '../../infrastructure/container.js';
+} from '../../../infrastructure/container.js';
+import { extractDocument } from '../../../infrastructure/parsing/TextExtractor.js';
+import { AnalyzeDocumentUseCase } from '../../../application/useCases/AnalyzeDocumentUseCase.js';
+import { manageProjectWorkflowUseCase } from '../../../infrastructure/container.js';
 
 export const projectsRouter = Router();
 

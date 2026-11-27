@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { asyncRoute } from '../middleware/errors.js';
-import { documentRepository, documentStore } from '../../infrastructure/container.js';
+import { asyncRoute } from '../../middleware/errors.js';
+import { documentRepository, documentStore } from '../../../infrastructure/container.js';
 
 export const documentsRouter = Router();
 
