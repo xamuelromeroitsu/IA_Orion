@@ -42,7 +42,9 @@ export default function Verdict({ evaluation, analyses = [] }) {
               <p className="text-sm font-semibold text-orion-yellow">{formatUsd(recommendedRow.tcoUsd)}</p>
             </div>
             <div className="rounded-xl bg-orion-background/50 px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-slate-400">Declarado</p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">
+                {recommendedRow.kind === 'spreadsheet' ? 'Base: 1 unidad por artículo' : 'Declarado'}
+              </p>
               <p className="text-sm font-semibold text-orion-text">{formatUsd(recommendedRow.declaredTotal)}</p>
             </div>
             <div className="rounded-xl bg-orion-background/50 px-3 py-2">
