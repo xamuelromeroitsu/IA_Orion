@@ -3,7 +3,14 @@ import { ArrowRight, FolderPlus } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { useSessionStore } from '../store/session'
 
-const emptyForm = { name: '', description: '', location: '', budgetReferenceUsd: '' }
+const emptyForm = {
+  name: '',
+  description: '',
+  operationType: 'compra',
+  businessType: '',
+  location: '',
+  budgetReferenceUsd: ''
+}
 
 export default function ProjectForm({ onCreated }) {
   const [form, setForm] = useState(emptyForm)
@@ -22,6 +29,10 @@ export default function ProjectForm({ onCreated }) {
       setValidationError('El nombre del proyecto es obligatorio')
       return
     }
+    if (!form.businessType.trim()) {
+      setValidationError('El sector o tipo de negocio es obligatorio')
+      return
+    }
     setValidationError('')
     try {
       const project = await send('/api/projects', {
@@ -29,6 +40,8 @@ export default function ProjectForm({ onCreated }) {
         body: {
           name: form.name.trim(),
           description: form.description.trim(),
+          operationType: form.operationType,
+          businessType: form.businessType.trim(),
           location: form.location.trim(),
           budgetReferenceUsd: form.budgetReferenceUsd === '' ? null : Number(form.budgetReferenceUsd)
         }
@@ -67,11 +80,25 @@ export default function ProjectForm({ onCreated }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
+          <label className="orion-label" htmlFor="project-operation-type">Tipo de operación</label>
+          <select id="project-operation-type" name="operationType" className="orion-input" value={form.operationType} onChange={handleChange}>
+            <option value="compra">Compra</option>
+            <option value="venta">Venta</option>
+          </select>
+        </div>
+        <div>
+          <label className="orion-label" htmlFor="project-business-type">Sector o tipo de negocio</label>
+          <input id="project-business-type" name="businessType" className="orion-input" value={form.businessType} onChange={handleChange} placeholder="Celulares, repuestos de autos, casas..." />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
           <label className="orion-label" htmlFor="project-location">Ubicación</label>
           <input id="project-location" name="location" className="orion-input" value={form.location} onChange={handleChange} placeholder="Caracas, VE" />
         </div>
         <div>
-          <label className="orion-label" htmlFor="project-budget">Presupuesto referencial (USD)</label>
+          <label className="orion-label" htmlFor="project-budget">Presupuesto disponible (USD)</label>
           <input id="project-budget" name="budgetReferenceUsd" type="number" min="0" step="0.01" className="orion-input" value={form.budgetReferenceUsd} onChange={handleChange} placeholder="250000" />
         </div>
       </div>
