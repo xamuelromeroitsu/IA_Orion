@@ -26,7 +26,10 @@ function normalizedText(analysis) {
 
 export function checkScope(analysis, requirement) {
   const text = normalizedText(analysis);
-  const requiredItems = requirement?.requiredItems ?? defaultRequiredItems;
+  const businessType = requirement?.businessType?.trim() ?? '';
+  const usesComputerScope = !businessType
+    || /comput|laboratorio|laptops?|estaciones de trabajo|\bpcs?\b/i.test(businessType);
+  const requiredItems = requirement?.requiredItems ?? (usesComputerScope ? defaultRequiredItems : []);
   const missing = requiredItems.filter((item) => {
     const keywords = itemKeywords[item] ?? [item];
     const normalized = item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -37,8 +40,8 @@ export function checkScope(analysis, requirement) {
   const teamCounts = [...text.matchAll(/\b(\d{1,3})\s*(?:equipos?|estudiantes?|puestos?|computadoras?|pcs?)\b/g)]
     .map((match) => Number(match[1]));
   const declaredTeams = teamCounts.length > 0 ? Math.max(...teamCounts) : null;
-  const requiredTeams = requirement?.requiredTeams ?? 11;
-  const hasTeamShortfall = declaredTeams != null && declaredTeams < requiredTeams;
+  const requiredTeams = requirement?.requiredTeams ?? (usesComputerScope ? 11 : null);
+  const hasTeamShortfall = declaredTeams != null && requiredTeams != null && declaredTeams < requiredTeams;
   const scopeComplete = missing.length === 0 && !hasTeamShortfall && analysis.scopeComplete !== false;
 
   const findings = [];
