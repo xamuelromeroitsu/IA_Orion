@@ -26,8 +26,8 @@ apps/web/
    │  └─ SuppliersPage.jsx          # Directorio de proveedores y antecedentes
    ├─ components/
    │  ├─ AppShell.jsx               # Barra superior, menú lateral y outlet de rutas
-   │  ├─ ProjectForm.jsx            # Formulario de proyecto y documento base
-   │  ├─ Uploader.jsx               # Dropzone: 3–20 archivos PDF/JPG/PNG/XLSX
+   │  ├─ ProjectForm.jsx            # Proyecto: operación, sector y requerimientos
+   │  ├─ Uploader.jsx               # Dropzone: 1–20 archivos PDF/JPG/PNG/XLSX
    │  ├─ TracePanel.jsx             # Panel SSE con eventos del agente en vivo
    │  ├─ ComparisonTable.jsx        # Declarado vs. real ajustado por propuesta
    │  ├─ Verdict.jsx                # Propuesta recomendada y dictamen de descarte
@@ -60,10 +60,12 @@ apps/web/
 | `pages/LoginPage.jsx` | Formulario de acceso; llama a `POST /api/auth/login`. | `// Login screen using Supabase Auth through the API.` |
 | `pages/ProjectsPage.jsx` | Lista de proyectos, estado y acceso al detalle. | `// Project list with process status badges.` |
 | `pages/ProjectDetailPage.jsx` | Muestra requerimientos, documentos y propuestas asociadas. | `// Project overview: documents and uploaded proposals.` |
+| `pages/DocumentsPage.jsx` | Carga documentos y presenta los análisis y precios unitarios Excel. | `// Project document list and extracted analysis.` |
 | `pages/EvaluationPage.jsx` | Orquesta carga masiva, botón de evaluación y panel de traza. | `// Evaluation workspace: upload, run and trace the agent.` |
 | `pages/ReportPage.jsx` | Renderiza Markdown del informe y botones de exportación. | `// Financial feasibility report and export actions.` |
 | `pages/SuppliersPage.jsx` | Alta y consulta del directorio de proveedores. | `// Supplier directory and previous participation alerts.` |
-| `components/Uploader.jsx` | Valida tipos/tamaños y muestra progreso por archivo. | `// Dropzone for 3 to 20 proposal files with client validation.` |
+| `components/Uploader.jsx` | Valida tipos/tamaños y muestra progreso por archivo. | `// Dropzone for 1 to 20 proposal files with client validation.` |
+| `components/AnalysisCard.jsx` | Muestra análisis y tabla de precios unitarios con comparación de presupuesto para Excel. | `// Extracted analysis and per-item spreadsheet prices.` |
 | `components/TracePanel.jsx` | Muestra en vivo lectura, búsquedas, fletes y recálculos. | `// Live trace panel fed by server-sent events.` |
 | `components/ComparisonTable.jsx` | Tabla declarado vs. ajustado; resalta discrepancias. | `// Declared amounts versus real adjusted costs.` |
 | `components/Verdict.jsx` | Recomendación y motivos de descarte citados. | `// Final recommendation and rejection rationale.` |
@@ -83,7 +85,7 @@ apps/web/
 | POST | `/api/auth/login` | `LoginPage` | Obtener cookie `httpOnly` de sesión |
 | POST | `/api/auth/logout` | `AppShell` | Cerrar sesión |
 | GET | `/api/auth/me` | `useAuth` | Usuario y rol actuales |
-| GET / POST | `/api/projects` | `ProjectsPage`, `ProjectForm` | Listar/crear proyectos |
+| GET / POST | `/api/projects` | `ProjectsPage`, `ProjectForm` | Listar/crear proyectos con tipo de operación y sector |
 | GET / PATCH | `/api/projects/:id` | `ProjectDetailPage` | Detalle y cambios de estado |
 | POST | `/api/projects/:id/documents` | `ProjectForm` | Subir documento base |
 | POST | `/api/evaluations` | `EvaluationPage` | Iniciar evaluación |
@@ -105,3 +107,5 @@ apps/web/
 3. Los montos se formatean en `formatters.js` y se calculan en el backend con `decimal.js`.
 4. Cada pantalla respeta el rol: cargador crea/sube, evaluador revisa, aprobador adjudica, auditor solo lee.
 5. Los nombres de archivos y carpetas van en inglés; las notas de esta guía están en español para entenderlos.
+6. La creación del proyecto requiere indicar compra/venta y el sector o tipo de negocio; este contexto acompaña el análisis de documentos.
+7. Los archivos XLSX se abren en línea con el MIME de Excel cuando el backend logra descifrarlos.
