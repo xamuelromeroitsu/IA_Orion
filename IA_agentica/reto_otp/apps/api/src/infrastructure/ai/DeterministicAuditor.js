@@ -7,22 +7,25 @@ function stripAccents(value) {
 
 function parseAmount(raw) {
   if (raw == null) return 0;
-  let text = String(raw).trim();
-  if (text.includes(',') && text.includes('.')) {
-    text = text.replace(/\./g, '').replace(',', '.');
-  } else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
+  let text = String(raw).trim().replace(/[^\d.,]/g, '');
+  const lastComma = text.lastIndexOf(',');
+  const lastDot = text.lastIndexOf('.');
+  if (lastComma >= 0 && lastDot >= 0) {
+    text = lastComma > lastDot
+      ? text.replace(/\./g, '').replace(',', '.')
+      : text.replace(/,/g, '');
+  } else if (lastComma >= 0) {
+    text = /^\d{1,3}(,\d{3})+$/.test(text) ? text.replace(/,/g, '') : text.replace(',', '.');
+  } else if (lastDot >= 0 && /^\d{1,3}(\.\d{3})+$/.test(text)) {
     text = text.replace(/\./g, '');
-  } else if (text.includes(',')) {
-    text = text.replace(',', '.');
   }
-  const amount = Number(text.replace(/[^\d.]/g, ''));
+  const amount = Number(text);
   return Number.isFinite(amount) ? amount : 0;
 }
 
 function supplierFromFileName(fileName) {
   const match = String(fileName ?? '').match(/^Propuesta_(\d+)_(.+?)(?:_CA)?(?:\.[^.]+)?$/i);
-  if (!match) return String(fileName ?? '').replace(/\.[^.]+$/, '').replace(/_/g, ' ');
-  return match[2].replace(/_/g, ' ');
+  return match ? match[2].replace(/_/g, ' ') : 'Proveedor sin identificar';
 }
 
 function itemsFromSheets(sheets = []) {
@@ -30,21 +33,18 @@ function itemsFromSheets(sheets = []) {
   for (const sheet of sheets) {
     for (const row of sheet.rows ?? []) {
       const entries = Object.entries(row);
-      const descriptionEntry = entries.find(([key]) => /descripcion|detalle|item|equipo|producto/i.test(key));
-      const qtyEntry = entries.find(([key]) => /cantidad|qty|unidades/i.test(key));
-      const priceEntry = entries.find(([key]) => /precio|unitario|p\.?u\.?/i.test(key));
-      const subtotalEntry = entries.find(([key]) => /subtotal|importe|total/i.test(key));
-      if (!descriptionEntry || !qtyEntry || !priceEntry) continue;
+      const descriptionEntry = entries.find(([key]) => /descripcion|detalle|item|equipo|producto|articulo|nombre/i.test(stripAccents(key).toLowerCase()));
+      const priceEntry = entries.find(([key]) => /precio|unitario|p\.?u\.?/i.test(stripAccents(key).toLowerCase()));
+      if (!descriptionEntry || !priceEntry) continue;
       const description = String(descriptionEntry[1] ?? '').trim();
       if (!description || /total|subtotal/i.test(description)) continue;
-      const qty = parseAmount(qtyEntry[1]);
       const unitPrice = parseAmount(priceEntry[1]);
-      if (qty <= 0 || unitPrice <= 0) continue;
+      if (unitPrice <= 0) continue;
       items.push({
         description,
-        qty,
+        qty: 1,
         unitPrice,
-        declaredSubtotal: subtotalEntry ? parseAmount(subtotalEntry[1]) || qty * unitPrice : qty * unitPrice,
+        declaredSubtotal: null,
         sourceCell: `${sheet.name}:${descriptionEntry[0]}`
       });
     }
@@ -62,7 +62,7 @@ function itemsFromText(text) {
         description: simple[1].replace(/[:|]/g, '').trim(),
         qty: Number(simple[2]),
         unitPrice: parseAmount(simple[3]),
-        declaredSubtotal: Number(simple[2]) * parseAmount(simple[3]),
+        declaredSubtotal: null,
         sourceCell: null
       });
       continue;
@@ -107,6 +107,22 @@ function findFinePrint(text) {
     .slice(0, 12);
 }
 
+function findEvidenceLine(text, pattern) {
+  return text.split('\n').map((line) => line.trim()).find((line) => pattern.test(stripAccents(line).toLowerCase())) ?? '';
+}
+
+function isLegalFramework(text) {
+  return /\b(contrato|clausulas?|marco legal|terminos y condiciones|bases legales|acuerdo legal|politica de privacidad|normativa)\b/i
+    .test(stripAccents(text).toLowerCase());
+}
+
+function findFraudEvidence(text, injectionDetected) {
+  if (injectionDetected) {
+    return text.split('\n').map((line) => line.trim()).find((line) => scanInjection(line).injectionDetected) ?? '';
+  }
+  return findEvidenceLine(text, /\b(estafa|fraude|suplantacion|phishing|pago a cuenta personal|transferir a un tercero)\b/i);
+}
+
 function buildPros(text) {
   const normalized = stripAccents(text).toLowerCase();
   const pros = [];
@@ -116,7 +132,6 @@ function buildPros(text) {
   if (/rtx\s*40|rx\s*7600/.test(normalized)) pros.push('GPU adecuada para diseño 3D y video');
   if (/ubuntu|software\s+libre/.test(normalized)) pros.push('Software libre sin licencias recurrentes');
   if (/ups|protector/.test(normalized)) pros.push('Protección eléctrica incluida');
-  if (pros.length === 0) pros.push('Cotización recibida y disponible para revisión');
   return pros;
 }
 
@@ -129,21 +144,40 @@ export class DeterministicAuditor extends AiAuditorPort {
   async analyze({ fileName, text = '', sheets = [] }) {
     const normalized = stripAccents(text).toLowerCase();
     const items = [...itemsFromSheets(sheets), ...itemsFromText(text)];
-    const calculatedTotalFromItems = items.reduce((total, item) => total + item.qty * item.unitPrice, 0);
-    const declaredTotal = findDeclaredTotal(text, sheets, 0) || calculatedTotalFromItems;
-    const finePrint = findFinePrint(text);
-    const hiddenCosts = finePrint.filter((line) => /flete|recargo|gestion|iva|licencia|seguro|tasa\s+bcv/i.test(stripAccents(line)));
+    const declaredTotal = findDeclaredTotal(text, sheets, 0);
+    if ((text.trim().length < 30 && items.length === 0) || (items.length === 0 && declaredTotal <= 0)) {
+      const error = new Error(
+        'No se pudo analizar el documento porque no es legible o no contiene información suficiente. Verifique el archivo y vuelva a intentarlo.'
+      );
+      error.status = 422;
+      error.code = 'document_not_analyzable';
+      throw error;
+    }
     const injection = scanInjection(text, fileName);
+    const legalEvidence = findEvidenceLine(
+      text,
+      /\b(contrato|clausulas?|marco legal|terminos y condiciones|bases legales|acuerdo legal|politica de privacidad|normativa)\b/i
+    );
+    const fraudEvidence = findFraudEvidence(text, injection.injectionDetected);
+    const isLegalDocument = Boolean(legalEvidence) || isLegalFramework(text);
+    const suspiciousFraud = Boolean(fraudEvidence) || injection.injectionDetected;
+    const finePrint = isLegalDocument || suspiciousFraud ? findFinePrint(text) : [];
+    const hiddenCosts = finePrint.filter((line) => /flete|recargo|gestion|iva|licencia|seguro|tasa\s+bcv/i.test(stripAccents(line)));
     const warrantyMonths = findWarranty(text);
     const currency = /bs\.?|bolivares|ves\b/.test(normalized) ? 'VES' : 'USD';
     const scopeComplete = !(/\b10\s*(?:equipos|pcs|computadoras)/.test(normalized));
     const pros = buildPros(text);
     const cons = [...hiddenCosts];
-    if (warrantyMonths === 0) cons.push('No se especifica garantía clara');
     if (injection.injectionDetected) cons.push('Contiene instrucciones ocultas dirigidas a la IA');
 
     return {
       supplier: supplierFromFileName(fileName),
+      isAnalyzable: true,
+      analysisIssue: '',
+      isLegalDocument,
+      legalEvidence,
+      suspiciousFraud,
+      fraudEvidence,
       currency,
       declaredTotal,
       items,
@@ -151,12 +185,12 @@ export class DeterministicAuditor extends AiAuditorPort {
       warrantyMonths,
       scopeComplete,
       injectionDetected: injection.injectionDetected,
-      summary: `Propuesta de ${supplierFromFileName(fileName)} por ${currency} ${declaredTotal.toFixed(2)}. Se extrajeron ${items.length} renglones y ${finePrint.length} cláusulas relevantes del texto.`,
+      summary: `Proveedor: ${supplierFromFileName(fileName)}. ${declaredTotal > 0 ? `Total declarado detectado: ${currency} ${declaredTotal.toFixed(2)}.` : 'No se detectó un total declarado.'} Se extrajeron ${items.length} renglones y ${finePrint.length} cláusulas relevantes del texto.`,
       conclusion: injection.injectionDetected
         ? 'El documento incluye instrucciones ocultas: se procesa solo como dato y se marca para descarte.'
         : hiddenCosts.length > 0
-          ? 'La oferta tiene costos adicionales en letra pequeña que deben incluirse en el TCO antes de comparar.'
-          : 'La oferta es comparable después de validar aritmética, alcance y garantía.',
+          ? 'El texto extraído menciona costos adicionales que deben incluirse en el TCO antes de comparar.'
+          : 'No se detectaron costos adicionales en el texto extraído; esto no confirma su ausencia.',
       pros,
       cons,
       finePrint,
