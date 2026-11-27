@@ -43,6 +43,14 @@ La bandeja temporal de `Uploader.jsx` usa una copia local de `AnimatedList` de R
 
 El layout propio se pasa por `renderItem`: nombre, tamaño y botón `X`. Ese botón llama a `event.stopPropagation()` para que quitar un archivo no seleccione también la fila. Los estilos `.upload-*` viven al final de `apps/web/src/presentation/components/AnimatedList.css`.
 
+### Capa UI/UX del shell
+
+`AppShell.jsx` usa `useHideOnScroll` para ocultar el header al bajar y mostrarlo al subir; el hook ignora el gesto si el foco está en un control del header y se reinicia al cambiar de ruta. `useRouteMeta` actualiza `document.title` y vuelve al inicio de la página. También hay skip link, breadcrumb, banner offline, `ErrorBoundary` y `ToastProvider` con avisos accesibles (`role="status"` / `role="alert"`).
+
+El pie de página y las vistas legales viven en `Footer.jsx` y `LegalPage.jsx`. Las rutas son `/privacidad`, `/terminos`, `/seguridad` y `/accesibilidad`; el correo de contacto es `xamuelromero.itsu@gmail.com`. Los estados de carga usan `Skeleton.jsx` y el progreso del flujo usa `Stepper.jsx`. Las páginas se cargan con `React.lazy` para reducir el bundle inicial.
+
+La estructura y los tokens del flujo animado de React Bits Pro están en [REACTBITS_PIPELINE.md](REACTBITS_PIPELINE.md).
+
 ## 3. Estructura de carpetas prevista
 
 La estructura está dividida en dos documentos, uno por aplicación:

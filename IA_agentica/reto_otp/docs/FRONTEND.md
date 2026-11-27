@@ -2,6 +2,12 @@
 
 Estructura del **frontend únicamente**. Todo está en JavaScript (ESM) con React + Vite. Los nombres de archivos y carpetas están en inglés; las notas explican qué hace cada uno. El backend está descrito en [BACKEND.md](BACKEND.md).
 
+### Notas de UI/UX vigente
+
+El árbol de abajo es el plano original; la implementación actual añade estos archivos: `components/Footer.jsx`, `pages/LegalPage.jsx`, `components/ToastProvider.jsx`, `components/Skeleton.jsx`, `components/ErrorBoundary.jsx`, `components/OfflineBanner.jsx`, `components/Stepper.jsx`, `hooks/useHideOnScroll.js`, `hooks/useRouteMeta.js` y `hooks/useToast.js`.
+
+El shell oculta el header al desplazarse hacia abajo, muestra breadcrumb y skip link, y usa rutas legales separadas: `/privacidad`, `/terminos`, `/seguridad`, `/accesibilidad`. `App.jsx` envuelve la app con `ErrorBoundary` y `ToastProvider`; `router.jsx` carga las páginas con `React.lazy`. `ComparisonTable.jsx` permite filtrar/ordenar y `TcoChart.jsx` incluye leyenda y resumen accesible. La estructura para Pipeline está en [REACTBITS_PIPELINE.md](REACTBITS_PIPELINE.md).
+
 ## 1. Árbol de carpetas
 
 ```text

@@ -66,7 +66,8 @@ README.md                    ← estás aquí
    ├─ BACKEND.md             estructura de apps/api/ y API REST
    ├─ STACK_HERRAMIENTAS.md  librerías JS, APIs y parámetros del modelo
    ├─ LOTE_PRUEBAS.md        análisis preliminar de las 10 propuestas
-   └─ VALIDACION.md          contrato de salida.json y validación final
+   ├─ VALIDACION.md          contrato de salida.json y validación final
+   └─ REACTBITS_PIPELINE.md   estructura e instalación de Pipeline
 ```
 
 ### Producto y proceso
@@ -83,6 +84,7 @@ README.md                    ← estás aquí
 | --- | --- |
 | [docs/DESARROLLO.md](docs/DESARROLLO.md) | Guía práctica y referencia técnica: esquema de datos, módulos, seguridad y pruebas. |
 | [docs/FRONTEND.md](docs/FRONTEND.md) | Estructura de `apps/web/` en inglés, nota por archivo y endpoints que consume. |
+| [docs/REACTBITS_PIPELINE.md](docs/REACTBITS_PIPELINE.md) | Estructura, configuración y adaptación ORION de Pipeline. |
 | [docs/BACKEND.md](docs/BACKEND.md) | Estructura de `apps/api/` en inglés, nota por archivo y API REST. |
 | [docs/STACK_HERRAMIENTAS.md](docs/STACK_HERRAMIENTAS.md) | Librerías JS, APIs externas y parámetros correctos del agente de IA. |
 
