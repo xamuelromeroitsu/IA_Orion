@@ -115,7 +115,7 @@ Base `/api`. Errores: `{ "error": { "code", "message", "details" } }`.
 | POST | `/auth/logout` | Cerrar sesión | todos |
 | GET | `/auth/me` | Usuario y rol actuales | todos |
 | GET | `/projects` | Listar proyectos | todos |
-| POST | `/projects` | Crear proyecto | cargador |
+| POST | `/projects` | Crear proyecto (requiere `operationType` compra/venta y `businessType`) | cargador |
 | GET | `/projects/:id` | Detalle del proyecto | todos |
 | PATCH | `/projects/:id` | Editar datos/estado | cargador, aprobador |
 | POST | `/projects/:id/documents` | Subir documento base | cargador |
@@ -148,6 +148,20 @@ upload.js → classify.js → (pdf.js | vision.js | spreadsheet.js)
 4. `rules/*` aplica descarte, TCO y ranking de forma determinista.
 5. `report/*` genera el dictamen; `scripts/batch.js` reutiliza el mismo pipeline para `salida.json`.
 
+## Lectura y presupuesto
+
+- `TextExtractor.extractDocument` selecciona PDF, imagen o XLSX por MIME.
+- Los PDF digitales usan `pdf-parse`; si no producen texto, el documento queda como ilegible o pasa a visión cuando Gemini recibe el contenido visual.
+- `XlsxReader.parseXlsx` busca la fila real de encabezados, normaliza las filas y recalcula fórmulas simples sin usar valores cacheados.
+- Los XLSX representan cada fila como una unidad. El sistema no multiplica el precio por inventario o stock.
+- `budgetCheck` compara el TCO recalculado con `budgetReferenceUsd`. Una propuesta que excede el presupuesto se descarta y produce un hallazgo de presupuesto.
+- La IA extrae datos y Gemini puede quedarse sin respuesta. Las reglas deterministas recalculan aritmética, TCO, alcance y ranking.
+- La ejecución de lote recibe argumentos mediante `npm run batch -- --input <ruta> --out <archivo>`.
+
+Los análisis reciben el contexto `operationType`/`businessType` y presupuesto disponible del proyecto. En Excel cada fila se normaliza a una unidad, sin multiplicarla por el stock disponible; el precio unitario se convierte a USD para marcar si cabe en el presupuesto. El chequeo fijo de periféricos y equipos solo se aplica a proyectos de computación; otros sectores usan el alcance definido por la IA con ese contexto. La letra pequeña solo se presenta con evidencia textual y cuando el documento es legal o hay indicios concretos de fraude; una lista de precios normal no genera cláusulas ni costos ocultos supuestos. Si la IA declara que el archivo es ilegible, no hay contexto suficiente o la respuesta no incluye los datos mínimos, se devuelve `422 document_not_analyzable` y no se persiste un análisis incompleto. El fallback determinista también rechaza documentos sin texto y datos extraíbles; no infiere el proveedor del nombre del archivo ni declara como total los subtotales calculados.
+
+`GET /documents/:id/file` consulta `project_documents.id`, descifra el archivo usando `storage_path`, `iv` y `tag`, y sirve los `.xlsx` con el MIME de Excel y nombre inline. Si Supabase no devuelve una fila, se consulta el repositorio local como fallback. Cuando se configura `SUPABASE_URL`, la API exige `SUPABASE_SERVICE_ROLE_KEY`; no usa una clave pública que no pueda leer los registros y objetos protegidos por RLS.
+
 Los archivos de herramientas se nombran en `camelCase` (`webSearch.js`, `bcvRate.js`, `scopeCheck.js`, `injectionScan.js`), pero los IDs expuestos en la traza SSE son `snake_case` (`web_search`, `bcv_rate`, `scope_check`, `injection_scan`) y los emiten los casos de uso en `src/application/useCases/`. Las reglas completas están en [AGENTS.md](../AGENTS.md).
 
 ## 5. Reglas del backend
@@ -173,6 +187,6 @@ Columnas añadidas en `002_align_api_contract.sql` que afectan al informe:
 
 ## 7. Verificación del alcance
 
-`checkScope` construye su texto de evidencia con los ítems, costos ocultos, letra pequeña, resumen, conclusión y el `extractedText` completo del documento. Así, cuando el auditor determinista extrae pocos renglones de un PDF o XLSX, los periféricos mencionados en el texto original siguen contando para el chequeo de alcance. `EvaluateBatchUseCase` obtiene ese texto del repositorio de documentos; `AnalyzeDocumentUseCase` lo usa al analizar cada archivo.
+`checkScope` construye su texto de evidencia con los ítems, costos ocultos, letra pequeña, resumen, conclusión y el `extractedText` completo del documento. Así, cuando el auditor determinista extrae pocos renglones de un PDF o XLSX, los periféricos mencionados en el texto original siguen contando para el chequeo de alcance. `EvaluateBatchUseCase` obtiene ese texto del repositorio de documentos; `AnalyzeDocumentUseCase` lo usa al analizar cada archivo. Los proyectos almacenan el tipo de operación (`operation_type`) y de negocio (`business_type`) como contexto de IA.
 
 Ensayo final (modo local, sin credenciales externas): 10 documentos subidos, 10 análisis, evaluación `completed` con recomendación determinista, 13 eventos SSE y exportaciones PDF (22 KB), CSV (1,4 KB) y XLSX (20 KB) con cabeceras y firmas válidas. Sin Gemini ni OCR, las imágenes escaneadas no producen montos fiables; el sistema las marca y deja la decisión al revisor humano.
