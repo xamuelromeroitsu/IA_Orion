@@ -116,7 +116,7 @@ Resumen; la fuente de verdad es [AGENTS.md](AGENTS.md).
 ## Modo demo y secretos
 
 - `.env` contiene credenciales reales y está ignorado por Git; `.env.example` solo tiene placeholders. Nunca se registran secretos en logs, commits, informes ni respuestas HTTP.
-- Sin `GEMINI_API_KEY` la API usa `DeterministicAuditor`: extrae lo que puede del texto de PDF/XLSX y aplica las mismas reglas deterministas. Las imágenes sin texto extraído no producen montos fiables; con Gemini multimodal (o `TAVILY_API_KEY` para precios de mercado) el análisis es completo.
+- Sin `GEMINI_API_KEY` la API usa `DeterministicAuditor`: extrae lo que puede del texto de PDF/XLSX y aplica las mismas reglas deterministas. Si el documento es ilegible o no aporta datos suficientes, se devuelve un error en lugar de generar un análisis supuesto. El proyecto define operación (compra/venta) y sector para contextualizar a Gemini.
 - Sin `SUPABASE_URL`/clave pública la API persiste en JSON local y cifra los archivos con `AES_KEY`; es el modo usado para el ensayo funcional. Las migraciones de `apps/api/supabase/` se aplican cuando la base remota esté accesible.
 - El MVP no tiene pantalla de login: el header `x-demo-role` selecciona `cargador`, `revisor`, `aprobador` o `auditor` para probar los permisos.
 
