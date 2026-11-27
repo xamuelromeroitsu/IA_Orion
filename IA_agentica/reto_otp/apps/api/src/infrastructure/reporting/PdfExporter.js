@@ -30,9 +30,9 @@ export function buildExecutivePdf({ evaluation, analyses = [], project = null })
 
   autoTable(doc, {
     startY: 210,
-    head: [['Proveedor', 'Declarado', 'Recalculado', 'Costos ocultos', 'TCO USD', 'Decisión']],
+    head: [['Proveedor / base', 'Total declarado / base (Excel: 1 unidad c/u)', 'Recalculado', 'Costos ocultos', 'TCO USD', 'Decisión']],
     body: evaluation.comparison.map((row) => [
-      row.supplier,
+      row.kind === 'spreadsheet' ? `${row.supplier} (Excel: 1 unidad c/u)` : row.supplier,
       row.declaredTotal.toFixed(2),
       row.calculatedTotal.toFixed(2),
       row.hiddenCostsUsd.toFixed(2),
