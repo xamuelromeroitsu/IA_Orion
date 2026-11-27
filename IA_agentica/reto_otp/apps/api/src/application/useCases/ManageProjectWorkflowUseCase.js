@@ -17,11 +17,19 @@ export class ManageProjectWorkflowUseCase {
   }
 
   async createProject(input) {
+    if (!['compra', 'venta'].includes(input.operationType) || !input.businessType?.trim()) {
+      const error = new Error('Indique si el proyecto es de compra o venta y especifique el sector o tipo de negocio');
+      error.status = 400;
+      error.code = 'invalid_project_context';
+      throw error;
+    }
     const now = new Date().toISOString();
     const project = {
       id: randomUUID(),
       name: input.name,
       description: input.description ?? '',
+      operationType: input.operationType,
+      businessType: input.businessType.trim(),
       location: input.location ?? 'Caracas, Venezuela',
       budgetReferenceUsd: Number(input.budgetReferenceUsd ?? 0),
       status: 'recepcion',
