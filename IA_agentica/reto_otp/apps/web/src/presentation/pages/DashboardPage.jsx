@@ -121,7 +121,7 @@ export default function DashboardPage() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-xl bg-orion-background/50 px-3 py-2.5">
-                  <p className="text-[11px] uppercase tracking-wide text-slate-400">Presupuesto referencial</p>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-400">Presupuesto disponible</p>
                   <p className="mt-1 text-sm font-semibold text-orion-yellow">{formatUsd(activeProject.budgetReferenceUsd)}</p>
                 </div>
                 <div className="rounded-xl bg-orion-background/50 px-3 py-2.5">
