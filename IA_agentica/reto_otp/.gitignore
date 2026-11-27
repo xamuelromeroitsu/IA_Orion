@@ -1,11 +1,16 @@
+# Dependencias (no subir node_modules)
 node_modules/
+
+# Build / artefactos
 dist/
+coverage/
+
+# Datos locales
+apps/api/.data/
+*.log
+.DS_Store
+
+# Variables locales y secretos. Mantener únicamente la plantilla versionada.
 .env
 .env.*
 !.env.example
-apps/api/.data/
-apps/api/.env
-apps/web/.env
-*.log
-.DS_Store
-coverage/
