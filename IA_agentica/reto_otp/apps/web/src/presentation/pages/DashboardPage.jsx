@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, DollarSign, FileText, FolderOpen, Sparkles, TrendingUp } from 'lucide-react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Alert02Icon, Analytics01Icon, Coins01Icon, File02Icon } from '@hugeicons/core-free-icons'
+import { ArrowRight, FolderOpen, TrendingUp } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
-import MetricCard from '../components/MetricCard'
+import MagicBento from '../components/MagicBento'
 import ProjectForm from '../components/ProjectForm'
 import StatusBadge from '../components/StatusBadge'
 import TcoChart from '../components/TcoChart'
@@ -37,6 +39,40 @@ export default function DashboardPage() {
   const criticalCount = findings.filter((finding) => ['critical', 'high'].includes(String(finding?.severity ?? '').toLowerCase())).length
   const tcoValues = chartRows.map((row) => toNumber(row.tcoUsd))
   const detectedSavings = tcoValues.length > 1 ? Math.max(...tcoValues) - Math.min(...tcoValues) : 0
+  const metricItems = [
+    {
+      id: 'documents',
+      to: '/documentos',
+      label: 'Documentos',
+      title: documents.length,
+      description: 'Archivos del proyecto activo',
+      icon: <HugeiconsIcon icon={File02Icon} size={19} strokeWidth={1.8} />
+    },
+    {
+      id: 'analyses',
+      to: '/evaluacion',
+      label: 'Análisis',
+      title: analyses.length,
+      description: 'Propuestas extraídas',
+      icon: <HugeiconsIcon icon={Analytics01Icon} size={19} strokeWidth={1.8} />
+    },
+    {
+      id: 'savings',
+      to: '/comparativa',
+      label: 'Ahorro detectado',
+      title: formatUsd(detectedSavings),
+      description: 'Diferencia entre TCO extremos',
+      icon: <HugeiconsIcon icon={Coins01Icon} size={19} strokeWidth={1.8} />
+    },
+    {
+      id: 'findings',
+      to: '/reportes',
+      label: 'Hallazgos críticos',
+      title: criticalCount,
+      description: 'Requieren revisión humana',
+      icon: <HugeiconsIcon icon={Alert02Icon} size={19} strokeWidth={1.8} />
+    }
+  ]
   const activities = [
     ...projectEvaluations.map((evaluation) => ({
       id: evaluation.id,
@@ -73,12 +109,20 @@ export default function DashboardPage() {
         ) : null}
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Documentos" value={documents.length} hint="Archivos del proyecto activo" icon={FileText} />
-        <MetricCard label="Análisis" value={analyses.length} hint="Propuestas extraídas" icon={Sparkles} />
-        <MetricCard label="Ahorro detectado" value={formatUsd(detectedSavings)} hint="Diferencia entre TCO extremos" icon={DollarSign} accent="yellow" />
-        <MetricCard label="Hallazgos críticos" value={criticalCount} hint="Requieren revisión humana" icon={AlertTriangle} />
-      </section>
+      <MagicBento
+        className="orion-metrics-bento"
+        items={metricItems}
+        columns={4}
+        rowHeight={148}
+        gap={16}
+        radius={18}
+        theme="dark"
+        glowColor="#FACC15"
+        enableStars={false}
+        enableTilt={false}
+        enableMagnetism={false}
+        onItemClick={(item) => navigate(item.to)}
+      />
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
         <div className="space-y-6">
