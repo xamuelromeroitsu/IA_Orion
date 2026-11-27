@@ -20,7 +20,7 @@ import { ManageProjectWorkflowUseCase } from '../application/useCases/ManageProj
 import { RecordHumanReviewUseCase } from '../application/useCases/RecordHumanReviewUseCase.js';
 import { AskProjectDocumentsUseCase } from '../application/useCases/AskProjectDocumentsUseCase.js';
 
-export const logger = pino({ level: process.env.LOG_LEVEL ?? 'info' });
+export const logger = pino({ level: env.LOG_LEVEL });
 export const eventBus = new SseEventBus();
 export const supabase = createSupabaseClient({ url: env.SUPABASE_URL, key: supabaseKey });
 
@@ -68,6 +68,7 @@ export const analyzeDocumentUseCase = new AnalyzeDocumentUseCase({
 
 export const evaluateBatchUseCase = new EvaluateBatchUseCase({
   analysisRepository,
+  documentRepository,
   evaluationRepository,
   projectRepository,
   eventPublisher: { publish: (event) => eventBus.publish(event) },

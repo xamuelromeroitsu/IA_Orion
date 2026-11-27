@@ -17,6 +17,7 @@ function normalizedText(analysis) {
     ...(analysis.items ?? []).map((item) => item.description ?? ''),
     ...(analysis.hiddenCosts ?? []),
     ...(analysis.finePrint ?? []),
+    analysis.extractedText ?? '',
     analysis.summary ?? '',
     analysis.conclusion ?? ''
   ];

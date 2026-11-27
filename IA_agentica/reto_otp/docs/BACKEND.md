@@ -148,7 +148,7 @@ upload.js → classify.js → (pdf.js | vision.js | spreadsheet.js)
 4. `rules/*` aplica descarte, TCO y ranking de forma determinista.
 5. `report/*` genera el dictamen; `scripts/batch.js` reutiliza el mismo pipeline para `salida.json`.
 
-Los archivos de herramientas se nombran en `camelCase` (`webSearch.js`, `bcvRate.js`, `scopeCheck.js`, `injectionScan.js`), pero los IDs que ve el modelo son `snake_case` (`web_search`, `bcv_rate`, `scope_check`, `injection_scan`); el mapeo vive en `src/evaluator.js`. Las reglas completas están en [AGENTS.md](../AGENTS.md).
+Los archivos de herramientas se nombran en `camelCase` (`webSearch.js`, `bcvRate.js`, `scopeCheck.js`, `injectionScan.js`), pero los IDs expuestos en la traza SSE son `snake_case` (`web_search`, `bcv_rate`, `scope_check`, `injection_scan`) y los emiten los casos de uso en `src/application/useCases/`. Las reglas completas están en [AGENTS.md](../AGENTS.md).
 
 ## 5. Reglas del backend
 
@@ -170,3 +170,9 @@ Columnas añadidas en `002_align_api_contract.sql` que afectan al informe:
 | `chat_messages` | `sources` | Muestra los archivos citados en cada respuesta del chat documental. |
 
 `project_documents.iv` y `tag` se almacenan como Base64 en `text`; el cifrado sigue siendo AES-256-GCM y la clave `AES_KEY` permanece solo en el servidor.
+
+## 7. Verificación del alcance
+
+`checkScope` construye su texto de evidencia con los ítems, costos ocultos, letra pequeña, resumen, conclusión y el `extractedText` completo del documento. Así, cuando el auditor determinista extrae pocos renglones de un PDF o XLSX, los periféricos mencionados en el texto original siguen contando para el chequeo de alcance. `EvaluateBatchUseCase` obtiene ese texto del repositorio de documentos; `AnalyzeDocumentUseCase` lo usa al analizar cada archivo.
+
+Ensayo final (modo local, sin credenciales externas): 10 documentos subidos, 10 análisis, evaluación `completed` con recomendación determinista, 13 eventos SSE y exportaciones PDF (22 KB), CSV (1,4 KB) y XLSX (20 KB) con cabeceras y firmas válidas. Sin Gemini ni OCR, las imágenes escaneadas no producen montos fiables; el sistema las marca y deja la decisión al revisor humano.

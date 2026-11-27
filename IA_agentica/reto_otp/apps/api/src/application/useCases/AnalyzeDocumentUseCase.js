@@ -95,7 +95,10 @@ export class AnalyzeDocumentUseCase {
       level: arithmeticResult.discrepancy > 0 ? 'warning' : 'info'
     });
 
-    const scope = checkScope({ ...extraction, injectionDetected }, requirement);
+    const scope = checkScope(
+      { ...extraction, injectionDetected, extractedText: document.extractedText ?? '' },
+      requirement
+    );
     this.eventPublisher.publish({
       phase: 'audit',
       tool: 'scope_check',

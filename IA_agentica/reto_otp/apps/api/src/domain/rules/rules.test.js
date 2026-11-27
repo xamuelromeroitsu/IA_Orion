@@ -3,6 +3,7 @@ import { Money } from '../valueObjects/Money.js';
 import { validateArithmetic } from './arithmetic.js';
 import { scanInjection } from './injectionScan.js';
 import { rankAnalyses } from './ranking.js';
+import { checkScope } from './scopeCheck.js';
 
 describe('Money', () => {
   it('convierte VES a USD con la tasa indicada', () => {
@@ -34,6 +35,28 @@ describe('scanInjection', () => {
 
   it('no marca texto comercial normal', () => {
     expect(scanInjection('Garantía de 24 meses con soporte presencial').injectionDetected).toBe(false);
+  });
+});
+
+describe('checkScope', () => {
+  const requirement = { requiredItems: ['gabinete', 'monitor', 'teclado', 'raton'], requiredTeams: 11 };
+
+  it('reconoce periféricos presentes en el texto completo del documento', () => {
+    const analysis = {
+      items: [{ description: 'Estación de trabajo', qty: 11, unitPrice: 1000 }],
+      extractedText: 'Once (11) equipos con gabinete, monitor, teclado y ratón.',
+      scopeComplete: true
+    };
+    expect(checkScope(analysis, requirement).scopeComplete).toBe(true);
+  });
+
+  it('marca alcance incompleto cuando el texto no menciona los periféricos', () => {
+    const analysis = {
+      items: [{ description: 'Estación de trabajo', qty: 11, unitPrice: 1000 }],
+      extractedText: 'Once (11) equipos de gama media-alta.',
+      scopeComplete: true
+    };
+    expect(checkScope(analysis, requirement).scopeComplete).toBe(false);
   });
 });
 

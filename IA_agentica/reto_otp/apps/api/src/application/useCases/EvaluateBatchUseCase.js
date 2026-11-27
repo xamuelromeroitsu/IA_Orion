@@ -8,6 +8,7 @@ import { rankAnalyses } from '../../domain/rules/ranking.js';
 export class EvaluateBatchUseCase {
   constructor({
     analysisRepository,
+    documentRepository,
     evaluationRepository,
     projectRepository,
     eventPublisher,
@@ -15,6 +16,7 @@ export class EvaluateBatchUseCase {
     marketPricePort
   }) {
     this.analysisRepository = analysisRepository;
+    this.documentRepository = documentRepository;
     this.evaluationRepository = evaluationRepository;
     this.projectRepository = projectRepository;
     this.eventPublisher = eventPublisher;
@@ -36,8 +38,14 @@ export class EvaluateBatchUseCase {
       throw new Error('No hay documentos analizados para evaluar');
     }
 
-    const project = await this.projectRepository.getById(projectId);
-    const rate = await this.exchangeRatePort.getRate();
+    const [project, documents, rate] = await Promise.all([
+      this.projectRepository.getById(projectId),
+      this.documentRepository.listByProject(projectId),
+      this.exchangeRatePort.getRate()
+    ]);
+    const extractedTextById = new Map(
+      documents.map((document) => [document.id, document.extractedText ?? ''])
+    );
     const evaluations = [];
 
     for (const analysis of analyses) {
@@ -48,7 +56,10 @@ export class EvaluateBatchUseCase {
         level: 'info'
       });
       const arithmetic = validateArithmetic(analysis.items ?? [], analysis.declaredTotal, analysis.id);
-      const scope = checkScope(analysis, project);
+      const scope = checkScope(
+        { ...analysis, extractedText: extractedTextById.get(analysis.documentId) ?? '' },
+        project
+      );
       const discard = evaluateDiscard(analysis, arithmetic, scope);
       const tco = computeTco(analysis, rate.rateUsd);
       const hiddenCostsUsd = tco.hiddenCostsUsd().toNumber();
