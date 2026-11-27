@@ -85,6 +85,8 @@ create table public.projects (
   id uuid not null default gen_random_uuid(),
   name text not null,
   description text,
+  operation_type text not null default 'compra',
+  business_type text not null default '',
   location text,
   budget_reference_usd numeric(14,2),
   currency char(3) not null default 'USD',
@@ -94,6 +96,7 @@ create table public.projects (
   updated_at timestamptz not null default now(),
   constraint pk_projects primary key (id),
   constraint chk_projects_currency check (currency ~ '^[A-Z]{3}$'),
+  constraint chk_projects_operation_type check (operation_type in ('compra', 'venta')),
   constraint chk_projects_status check (status in ('recepcion', 'evaluacion', 'revision_comite', 'adjudicado', 'cerrado'))
 );
 
