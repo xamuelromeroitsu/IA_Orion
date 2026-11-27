@@ -9,6 +9,17 @@ describe('DeterministicAuditor', () => {
       .rejects.toMatchObject({ status: 422, code: 'document_not_analyzable' });
   });
 
+  it('reports the missing visual-analysis configuration for unreadable images', async () => {
+    const auditor = new DeterministicAuditor();
+
+    await expect(auditor.analyze({
+      fileName: 'propuesta.png',
+      kind: 'image',
+      mimeType: 'image/png',
+      text: ''
+    })).rejects.toMatchObject({ status: 503, code: 'image_analysis_unavailable' });
+  });
+
   it('does not present calculated subtotals or filenames as extracted facts', async () => {
     const auditor = new DeterministicAuditor();
     const result = await auditor.analyze({

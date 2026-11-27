@@ -18,7 +18,7 @@ export default function DocumentsPage() {
   const projects = useSessionStore((state) => state.projects)
   const activeProjectId = useSessionStore((state) => state.activeProjectId)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? projects[0] ?? null
-  const { documents, analyses, isLoading, isUploading, upload, error, uploadError } = useDocuments(activeProject?.id ?? activeProjectId)
+  const { documents, analyses, isLoading, isUploading, upload, error, uploadError, analysisErrors, documentUploadErrors } = useDocuments(activeProject?.id ?? activeProjectId)
   const canUpload = canRole(role, 'upload')
 
   if (!activeProject) {
@@ -65,6 +65,24 @@ export default function DocumentsPage() {
           <p className="text-xs text-slate-400">Se aceptan entre 1 y 20 archivos PDF, JPG, PNG o XLSX.</p>
         </div>
         {uploadError ? <p className="text-xs text-red-300">{uploadError.message}</p> : null}
+        {documentUploadErrors.length ? (
+          <ul className="space-y-1 text-xs text-red-300" role="alert">
+            {documentUploadErrors.map((uploadFailure, index) => (
+              <li key={`${uploadFailure.fileName}-${index}`}>
+                {uploadFailure.fileName}: {uploadFailure.message}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {analysisErrors.length ? (
+          <ul className="space-y-1 text-xs text-orion-yellow" role="status">
+            {analysisErrors.map((analysisError) => (
+              <li key={analysisError.documentId}>
+                {analysisError.fileName}: {analysisError.message}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <Uploader onUpload={upload} isUploading={isUploading} disabled={!canUpload} />
       </section>
 

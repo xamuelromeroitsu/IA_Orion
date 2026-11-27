@@ -5,9 +5,10 @@ import { dataDirectory } from '../persistence/LocalStore.js';
 
 const filesDirectory = path.join(dataDirectory, 'files');
 
-function storageError(message, cause) {
+function storageError(message, cause, code) {
   const error = new Error(message, { cause });
   error.status = 500;
+  if (code) error.code = code;
   return error;
 }
 
@@ -54,7 +55,7 @@ export class DocumentStore {
         upsert: true
       });
       if (error) {
-        throw storageError(`No se pudo guardar el archivo cifrado: ${storagePath}`, error);
+        throw storageError(`No se pudo guardar el archivo cifrado: ${storagePath}`, error, 'document_storage_save_failed');
       }
     }
     return {

@@ -180,7 +180,7 @@ export default function AnalysisCard({ analysis, document, budgetReferenceUsd = 
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">Hallazgos ({findings.length})</p>
           {findings.map((finding, index) => (
-            <div key={finding?.id ?? `finding-${index}`} className={`rounded-xl border px-4 py-3 ${severityClasses(finding?.severity)}`}>
+            <div key={`${finding?.id ?? 'finding'}-${index}`} className={`rounded-xl border px-4 py-3 ${severityClasses(finding?.severity)}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-semibold">{finding?.title || 'Hallazgo'}</p>
                 <div className="flex flex-wrap items-center gap-2">

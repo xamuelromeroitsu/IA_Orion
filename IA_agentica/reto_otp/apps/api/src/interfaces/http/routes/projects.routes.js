@@ -49,55 +49,78 @@ projectsRouter.post('/:id/documents', requireRole('cargador', 'revisor'), upload
   if (files.length === 0) {
     return response.status(400).json({ error: { code: 'no_files', message: 'Se requiere al menos un archivo' } });
   }
+  const requirement = await manageProjectWorkflowUseCase.getProject(projectId);
 
   const documents = [];
   const analyses = [];
+  const analysisErrors = [];
+  const uploadErrors = [];
   for (const file of files) {
-    const extracted = await extractDocument({
-      buffer: file.buffer,
-      mime: file.mimetype,
-      fileName: file.originalname
-    });
-    const stored = await documentStore.save({
-      buffer: file.buffer,
-      fileName: file.originalname,
-      projectId
-    });
-    const document = {
-      id: stored.id,
-      projectId,
-      fileName: file.originalname,
-      mime: file.mimetype,
-      kind: extracted.kind,
-      size: file.size,
-      storagePath: stored.storagePath,
-      sha256: stored.sha256,
-      iv: stored.iv,
-      tag: stored.tag,
-      uploadedAt: new Date().toISOString(),
-      extractedText: extracted.extractedText,
-      sheets: extracted.sheets
-    };
-    await documentRepository.save(document);
-    documents.push(document);
+    let document;
+    let extracted;
+    try {
+      extracted = await extractDocument({
+        buffer: file.buffer,
+        mime: file.mimetype,
+        fileName: file.originalname
+      });
+      const stored = await documentStore.save({
+        buffer: file.buffer,
+        fileName: file.originalname,
+        projectId
+      });
+      document = {
+        id: stored.id,
+        projectId,
+        fileName: file.originalname,
+        mime: file.mimetype,
+        kind: extracted.kind,
+        size: file.size,
+        storagePath: stored.storagePath,
+        sha256: stored.sha256,
+        iv: stored.iv,
+        tag: stored.tag,
+        uploadedAt: new Date().toISOString(),
+        extractedText: extracted.extractedText,
+        sheets: extracted.sheets
+      };
+      await documentRepository.save(document);
+      documents.push(document);
+    } catch (error) {
+      uploadErrors.push({
+        fileName: file.originalname,
+        code: error.code ?? 'document_upload_failed',
+        message: error.message ?? 'No se pudo guardar este documento'
+      });
+      continue;
+    }
 
-    const auditor = createAuditor(extracted.kind === 'image' || extracted.kind === 'pdf'
-      ? file.buffer.toString('base64')
-      : null);
-    const useCase = new AnalyzeDocumentUseCase({
-      aiAuditor: auditor,
-      analysisRepository,
-      eventPublisher: eventBus,
-      exchangeRatePort
-    });
-    const analysis = await useCase.execute({
-      projectId,
-      document: { ...document, kind: extracted.kind },
-      requirement: await manageProjectWorkflowUseCase.getProject(projectId)
-    });
-    analyses.push(analysis);
+    try {
+      const auditor = createAuditor(extracted.kind === 'image' || extracted.kind === 'pdf'
+        ? file.buffer.toString('base64')
+        : null);
+      const useCase = new AnalyzeDocumentUseCase({
+        aiAuditor: auditor,
+        analysisRepository,
+        eventPublisher: eventBus,
+        exchangeRatePort
+      });
+      const analysis = await useCase.execute({
+        projectId,
+        document: { ...document, kind: extracted.kind },
+        requirement
+      });
+      analyses.push(analysis);
+    } catch (error) {
+      analysisErrors.push({
+        documentId: document.id,
+        fileName: document.fileName,
+        code: error.code ?? 'analysis_failed',
+        message: error.message ?? 'No se pudo analizar este documento'
+      });
+    }
   }
 
   await manageProjectWorkflowUseCase.updateStatus(projectId, 'evaluacion');
-  return response.status(201).json({ documents, analyses });
+  return response.status(201).json({ documents, analyses, analysisErrors, uploadErrors });
 }));

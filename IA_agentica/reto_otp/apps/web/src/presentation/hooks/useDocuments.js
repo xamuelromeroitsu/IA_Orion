@@ -7,6 +7,8 @@ export function useDocuments(projectId) {
   const { data, error, isLoading, get, send, setData } = useApi(emptyDocuments)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState(null)
+  const [analysisErrors, setAnalysisErrors] = useState([])
+  const [documentUploadErrors, setDocumentUploadErrors] = useState([])
 
   const load = useCallback(async () => {
     if (!projectId) return emptyDocuments
@@ -14,6 +16,8 @@ export function useDocuments(projectId) {
   }, [projectId, get])
 
   useEffect(() => {
+    setAnalysisErrors([])
+    setDocumentUploadErrors([])
     if (!projectId) {
       setData(emptyDocuments)
       return
@@ -28,6 +32,8 @@ export function useDocuments(projectId) {
       files.forEach((file) => formData.append('files', file))
       setIsUploading(true)
       setUploadError(null)
+      setAnalysisErrors([])
+      setDocumentUploadErrors([])
       try {
         const result = await send(`/api/projects/${projectId}/documents`, {
           method: 'POST',
@@ -37,6 +43,8 @@ export function useDocuments(projectId) {
           documents: result?.documents ?? [],
           analyses: result?.analyses ?? []
         })
+        setAnalysisErrors(result?.analysisErrors ?? [])
+        setDocumentUploadErrors(result?.uploadErrors ?? [])
         return result
       } catch (caught) {
         setUploadError(caught)
@@ -55,6 +63,8 @@ export function useDocuments(projectId) {
     isLoading,
     isUploading,
     uploadError,
+    analysisErrors,
+    documentUploadErrors,
     upload,
     reload: load
   }
