@@ -35,7 +35,7 @@ export const exchangeRatePort = new BcvRateProvider({
   fallbackRate: env.BCV_FALLBACK_RATE
 });
 export const marketPricePort = new WebPriceProvider({ apiKey: env.TAVILY_API_KEY });
-export const documentStore = new DocumentStore({ client: supabase, aesKey: env.AES_KEY });
+export const documentStore = new DocumentStore({ client: supabase, aesKey: env.AES_KEY, logger });
 
 export function scopedPublisher(evaluationId) {
   return {
