@@ -6,6 +6,7 @@ const pdfParse = require('pdf-parse');
 
 const spreadsheetMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
+// Identifica el tipo de archivo por su MIME para seleccionar la ruta de lectura.
 export function classifyDocument(mime = '') {
   if (mime === 'application/pdf') return 'pdf';
   if (mime.startsWith('image/')) return 'image';
@@ -13,7 +14,17 @@ export function classifyDocument(mime = '') {
   return 'unknown';
 }
 
-export async function extractDocument({ buffer, mime, fileName }) {
+// Normaliza el texto PDF; conserva saltos útiles y elimina espacios defectuosos.
+function normalizeExtractedText(text) {
+  return String(text ?? '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+// Extrae texto de PDF o XLSX y deja las imágenes para análisis visual posterior.
+export async function extractDocument({ buffer, mime, fileName, pdfParser = pdfParse }) {
   const kind = classifyDocument(mime);
   let extractedText = '';
   let sheets = [];
@@ -21,8 +32,8 @@ export async function extractDocument({ buffer, mime, fileName }) {
 
   if (kind === 'pdf') {
     try {
-      const result = await pdfParse(buffer);
-      extractedText = result.text ?? '';
+      const result = await pdfParser(buffer);
+      extractedText = normalizeExtractedText(result.text);
     } catch {
       extractedText = '';
     }
