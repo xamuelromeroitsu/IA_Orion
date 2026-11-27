@@ -4,6 +4,7 @@ import { validateArithmetic } from './arithmetic.js';
 import { scanInjection } from './injectionScan.js';
 import { rankAnalyses } from './ranking.js';
 import { checkScope } from './scopeCheck.js';
+import { checkBudget } from './budgetCheck.js';
 
 describe('Money', () => {
   it('convierte VES a USD con la tasa indicada', () => {
@@ -57,6 +58,34 @@ describe('checkScope', () => {
       scopeComplete: true
     };
     expect(checkScope(analysis, requirement).scopeComplete).toBe(false);
+  });
+
+  it('does not apply computer equipment requirements to a different business sector', () => {
+    const result = checkScope(
+      { items: [], scopeComplete: true },
+      { businessType: 'Repuestos de autos' }
+    );
+
+    expect(result.scopeComplete).toBe(true);
+    expect(result.findings).toHaveLength(0);
+  });
+});
+
+describe('checkBudget', () => {
+  it('mantiene válida una propuesta cuyo TCO cabe en el presupuesto', () => {
+    const result = checkBudget({ tcoUsd: 900 }, { budgetReferenceUsd: 1000 });
+    expect(result.isWithinBudget).toBe(true);
+    expect(result.reasons).toEqual([]);
+  });
+
+  it('descarta una propuesta cuyo TCO supera el presupuesto', () => {
+    const result = checkBudget({ tcoUsd: 1250 }, { budgetReferenceUsd: 1000 });
+    expect(result.isWithinBudget).toBe(false);
+    expect(result.reasons).toContain('El TCO supera el presupuesto disponible');
+  });
+
+  it('no aplica límite cuando el proyecto no tiene presupuesto', () => {
+    expect(checkBudget({ tcoUsd: 1250 }, { budgetReferenceUsd: 0 }).isWithinBudget).toBe(true);
   });
 });
 
