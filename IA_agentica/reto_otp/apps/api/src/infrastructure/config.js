@@ -41,4 +41,8 @@ const envSchema = z.object({
 
 export const env = envSchema.parse(process.env);
 
-export const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '';
+if (env.SUPABASE_URL && !env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('SUPABASE_SERVICE_ROLE_KEY es obligatorio cuando SUPABASE_URL está configurado');
+}
+
+export const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || '';
