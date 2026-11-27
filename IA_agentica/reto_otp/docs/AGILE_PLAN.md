@@ -31,6 +31,7 @@ Plan de ejecución para 2 días con metodología ágil ligera. Las historias de 
 | T1.2 | Endpoint `POST /projects/:id/documents` + cifrado AES en Storage | Backend/API + Seguridad | 3 | HU-01 |
 | T1.3 | Listado de proyectos, estados y cambio `recepción → … → cerrado` | Frontend + Backend/API | 3 | HU-02 |
 | T1.4 | Registro de cada cambio de estado en `audit_log` | Backend/API | 2 | HU-02, HU-14 |
+| T1.5 | Contexto de operación/sector por proyecto y rechazo de análisis sin evidencia | Frontend + Backend/API + IA | 3 | HU-01, HU-04 |
 
 ### E2 · Ingesta multimodal
 
@@ -42,6 +43,7 @@ Plan de ejecución para 2 días con metodología ágil ligera. Las historias de 
 | T2.4 | Extracción con visión Gemini y esquema JSON estricto | IA/Datos | 5 | HU-04 |
 | T2.5 | Recálculo de fórmulas XLSX sin valor cacheado | IA/Datos | 3 | HU-05 |
 | T2.6 | Prueba con los 10 archivos del lote real | IA/Datos | 2 | HU-03–05 |
+| T2.7 | Precios Excel por unidad, letra pequeña con evidencia y descarga XLSX | Frontend + Backend/API + IA | 3 | HU-04 |
 
 ### E3 · Auditoría con herramientas
 
@@ -124,5 +126,7 @@ T0.3 → T1.2 → T5.3 → T5.1 → T5.2
 
 | ID | Tarea | Estado |
 | --- | --- | --- |
+| T2.7 | Precios Excel por unidad, letra pequeña con evidencia y descarga XLSX | Done |
+| T1.5 | Contexto de operación/sector por proyecto y rechazo de análisis sin evidencia | Done |
 | T5.3 | Alinear políticas RLS y esquema con los repositorios de la API | Done |
 | T6.3 | Ensayo final: demo completa y revisión de secretos en Git | Done |
