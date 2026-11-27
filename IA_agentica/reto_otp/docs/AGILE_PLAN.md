@@ -119,3 +119,10 @@ T0.3 → T1.2 → T5.3 → T5.1 → T5.2
 | Done | Commit en `desarrollo` + nota actualizada. |
 
 **Ritmo sugerido:** standup 5 min, trabajo 90 min, revisión 10 min, ajuste 5 min. Repetir dos veces por timebox. Al final de cada sprint se muestra una demo de 3 minutos; lo que no pase el DoD vuelve a `To Do` con la tarea dividida.
+
+## 6. Tablero activo
+
+| ID | Tarea | Estado |
+| --- | --- | --- |
+| T5.3 | Alinear políticas RLS y esquema con los repositorios de la API | Done |
+| T6.3 | Ensayo final: demo completa y revisión de secretos en Git | Done |

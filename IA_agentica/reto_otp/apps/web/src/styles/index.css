@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0B1F3A;
+  color: #E8F0FA;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .orion-card {
+    @apply rounded-card border border-white/10 bg-orion-surface/80 shadow-card backdrop-blur;
+  }
+
+  .orion-label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-300;
+  }
+
+  .orion-input {
+    @apply w-full rounded-xl border border-white/10 bg-orion-background/70 px-3.5 py-2.5 text-sm text-orion-text outline-none transition placeholder:text-slate-500 focus:border-orion-blue focus:ring-2 focus:ring-orion-blue/25;
+  }
+
+  .orion-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-orion-blue/30 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .orion-button-primary {
+    @apply bg-orion-blue text-white hover:bg-blue-500;
+  }
+
+  .orion-button-secondary {
+    @apply border border-white/15 bg-white/5 text-orion-text hover:bg-white/10;
+  }
+
+  .orion-button-yellow {
+    @apply bg-orion-yellow text-orion-background hover:bg-yellow-300;
+  }
+
+  .orion-scroll::-webkit-scrollbar {
+    @apply h-2 w-2;
+  }
+
+  .orion-scroll::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/15;
+  }
+
+  .orion-scroll::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+}
