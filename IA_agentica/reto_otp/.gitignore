@@ -10,7 +10,10 @@ apps/api/.data/
 *.log
 .DS_Store
 
-# Variables locales y secretos. Mantener únicamente la plantilla versionada.
-.env
-.env.*
-!.env.example
+# NOTA DEMO: .env se incluye intencionalmente en este repo de prueba.
+# En un proyecto real, NUNCA subas secretos ni .env al repositorio.
+# .env.*
+# !.env.example
+# apps/api/.env
+# apps/web/.env
+#

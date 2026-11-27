@@ -30,8 +30,11 @@ const itemSchema = {
 const findingSchema = {
   type: Type.OBJECT,
   properties: {
-    category: { type: Type.STRING },
-    severity: { type: Type.STRING },
+    category: {
+      type: Type.STRING,
+      enum: ['arithmetic', 'hidden_cost', 'injection', 'scope', 'compatibility', 'market_price', 'warranty', 'general']
+    },
+    severity: { type: Type.STRING, enum: ['low', 'medium', 'high', 'critical'] },
     title: { type: Type.STRING },
     detail: { type: Type.STRING },
     evidence: { type: Type.STRING },
@@ -51,7 +54,7 @@ const analysisSchema = {
     legalEvidence: { type: Type.STRING },
     suspiciousFraud: { type: Type.BOOLEAN },
     fraudEvidence: { type: Type.STRING },
-    currency: { type: Type.STRING },
+    currency: { type: Type.STRING, enum: ['USD', 'VES'] },
     declaredTotal: { type: Type.NUMBER },
     items: { type: Type.ARRAY, items: itemSchema },
     hiddenCosts: { type: Type.ARRAY, items: { type: Type.STRING } },

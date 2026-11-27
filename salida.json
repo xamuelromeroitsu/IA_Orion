@@ -1,0 +1,61 @@
+{
+  "reto": "propuesta_servicios",
+  "repositorio": "https://gitlab.nube.gob.ve/grupo/chuao/chuao_grupo1/reto_otp.git",
+  "commit": "f7d3deea9440930fb34e3bbe3e162ae786b1546e",
+  "inicio": "2026-11-27T18:02:28-04:00",
+  "fin": "2026-11-27T18:06:33-04:00",
+  "procesados": [
+    {
+      "archivo": "Propuesta_131_ReTech_Outlet_Venezuela_CA.pdf",
+      "hora": "2026-11-27T18:02:33-04:00"
+    },
+    {
+      "archivo": "Propuesta_331_Mayorista_Sin_Fronteras_CA.png",
+      "hora": "2026-11-27T18:03:12-04:00"
+    },
+    {
+      "archivo": "Propuesta_602_Krypton_Ingenieria_CA.png",
+      "hora": "2026-11-27T18:03:17-04:00"
+    },
+    {
+      "archivo": "Propuesta_638_TecnoAndes_Soluciones_CA.xlsx",
+      "hora": "2026-11-27T18:03:21-04:00"
+    },
+    {
+      "archivo": "Propuesta_734_Inversiones_Elite_Tech_2026_CA.xlsx",
+      "hora": "2026-11-27T18:03:24-04:00"
+    },
+    {
+      "archivo": "Propuesta_832_Sistemas_del_Valle_CA.jpg",
+      "hora": "2026-11-27T18:03:34-04:00"
+    },
+    {
+      "archivo": "Propuesta_841_Avila_Hardware__Redes_CA.png",
+      "hora": "2026-11-27T18:03:38-04:00"
+    },
+    {
+      "archivo": "Propuesta_898_Distribuidora_10x10_Tech_CA.png",
+      "hora": "2026-11-27T18:06:23-04:00"
+    },
+    {
+      "archivo": "Propuesta_923_Grupo_Digital_Miranda_CA.pdf",
+      "hora": "2026-11-27T18:06:28-04:00"
+    },
+    {
+      "archivo": "Propuesta_975_Ofertas_Express_Digital_CA.jpg",
+      "hora": "2026-11-27T18:06:32-04:00"
+    }
+  ],
+  "ranking": [
+    "Propuesta_923_Grupo_Digital_Miranda_CA",
+    "Propuesta_638_TecnoAndes_Soluciones_CA",
+    "Propuesta_734_Inversiones_Elite_Tech_2026_CA",
+    "Propuesta_898_Distribuidora_10x10_Tech_CA",
+    "Propuesta_832_Sistemas_del_Valle_CA",
+    "Propuesta_331_Mayorista_Sin_Fronteras_CA",
+    "Propuesta_131_ReTech_Outlet_Venezuela_CA",
+    "Propuesta_975_Ofertas_Express_Digital_CA",
+    "Propuesta_841_Avila_Hardware__Redes_CA",
+    "Propuesta_602_Krypton_Ingenieria_CA"
+  ]
+}
