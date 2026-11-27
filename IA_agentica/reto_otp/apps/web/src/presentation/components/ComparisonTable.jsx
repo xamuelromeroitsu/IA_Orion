@@ -18,7 +18,7 @@ export default function ComparisonTable({ rows = [], recommendedId }) {
         <thead>
           <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
             <th className="px-3 py-3 font-semibold">Proveedor</th>
-            <th className="px-3 py-3 text-right font-semibold">Declarado</th>
+            <th className="px-3 py-3 text-right font-semibold">Total declarado / base</th>
             <th className="px-3 py-3 text-right font-semibold">Recalculado</th>
             <th className="px-3 py-3 text-right font-semibold">Costos ocultos</th>
             <th className="px-3 py-3 text-right font-semibold">TCO USD</th>
@@ -41,7 +41,10 @@ export default function ComparisonTable({ rows = [], recommendedId }) {
               <tr key={row.analysisId ?? `${row.fileName}-${index}`} className={rowClasses}>
                 <td className="px-3 py-3">
                   <p className="font-semibold text-orion-text">{row.supplier ?? 'Proveedor sin nombre'}</p>
-                  <p className="text-xs text-slate-400">{row.fileName}</p>
+                  <p className="text-xs text-slate-400">
+                    {row.fileName}
+                    {row.kind === 'spreadsheet' ? ' · Excel: 1 unidad por artículo' : ''}
+                  </p>
                 </td>
                 <td className="px-3 py-3 text-right text-slate-200">{formatUsd(row.declaredTotal)}</td>
                 <td className="px-3 py-3 text-right text-slate-200">{formatUsd(row.calculatedTotal)}</td>
