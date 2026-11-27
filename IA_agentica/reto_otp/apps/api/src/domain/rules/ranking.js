@@ -23,6 +23,7 @@ export function rankAnalyses(analyses = [], evaluations = []) {
       analysisId: analysis.id,
       supplier: analysis.supplier ?? 'Proveedor sin identificar',
       fileName: analysis.fileName ?? '',
+      kind: analysis.kind ?? 'unknown',
       declaredTotal,
       calculatedTotal: Number(analysis.calculatedTotal ?? declaredTotal),
       hiddenCostsUsd: Number(evaluation.hiddenCostsUsd ?? 0),
