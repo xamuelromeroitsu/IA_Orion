@@ -89,7 +89,7 @@ Tablas principales de `apps/api/supabase/schema.sql`. La nomenclatura (`snake_ca
 
 | Tabla | Campos clave |
 | --- | --- |
-| `projects` | `id uuid`, `name`, `description`, `location`, `budget_reference_usd numeric`, `currency char(3)`, `status`, `owner_id`, `created_at`, `updated_at` |
+| `projects` | `id uuid`, `name`, `description`, `operation_type`, `business_type`, `location`, `budget_reference_usd numeric`, `currency char(3)`, `status`, `owner_id`, `created_at`, `updated_at` |
 | `project_documents` | `id`, `project_id`, `file_name`, `mime`, `kind`, `storage_path`, `iv text`, `tag text`, `sha256`, `extracted_text`, `sheets jsonb`, `uploaded_by` |
 | `suppliers` | `id`, `fiscal_id unique`, `name`, `location`, `contact`, `created_at` |
 | `evaluations` | `id`, `project_id`, `status`, `started_at`, `finished_at`, `ranking jsonb`, `comparison jsonb`, `summary`, `recommended_id`, `exchange_rate`, `exchange_rate_date`, `reviewed_by text`, `review_notes`, `approved_by text` |
@@ -105,6 +105,7 @@ Tablas principales de `apps/api/supabase/schema.sql`. La nomenclatura (`snake_ca
 **Estados de evaluación:** `running` → `completed` / `failed` en la API; `en_curso`, `en_revision`, `aprobado` y `rechazado` se conservan para datos históricos y la Edge Function.
 
 La migración `002_align_api_contract.sql` amplía los `check` de `project_documents.kind` y `evaluations.status`, agrega las columnas de `document_analyses` y `chat_messages` que consume el informe, guarda `iv`/`tag` en Base64 como `text` y habilita `application/octet-stream` en el bucket `documents`. `schema.sql` ya incluye esos cambios.
+La migración `003_add_project_business_context.sql` agrega a los proyectos el tipo de operación (`compra`/`venta`) y el sector de negocio usados como contexto durante el análisis.
 
 **Políticas RLS:** lectura para los cuatro roles según proyecto; escritura restringida a cargador/evaluador; aprobación solo para `aprobador`; `auditor` únicamente `SELECT`. El `service_role` se usa solo en el backend para auditoría y cifrado.
 
