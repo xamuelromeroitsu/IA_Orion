@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowRight, FolderPlus } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { useSessionStore } from '../store/session'
+import { useToast } from '../hooks/useToast'
 
 const emptyForm = {
   name: '',
@@ -17,6 +18,7 @@ export default function ProjectForm({ onCreated }) {
   const [validationError, setValidationError] = useState('')
   const { send, isLoading, error } = useApi()
   const upsertProject = useSessionStore((state) => state.upsertProject)
+  const toast = useToast()
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -48,9 +50,12 @@ export default function ProjectForm({ onCreated }) {
       })
       upsertProject(project)
       setForm(emptyForm)
+      toast.success('Proyecto creado correctamente')
       onCreated?.(project)
     } catch (caught) {
-      setValidationError(caught?.message ?? 'No se pudo crear el proyecto')
+      const message = caught?.message ?? 'No se pudo crear el proyecto'
+      setValidationError(message)
+      toast.error(message)
     }
   }
 

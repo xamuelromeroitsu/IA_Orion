@@ -3,6 +3,8 @@ import { ArrowRight, FileText } from 'lucide-react'
 import DownloadButtons from '../components/DownloadButtons'
 import EmptyState from '../components/EmptyState'
 import ReviewActions from '../components/ReviewActions'
+import { LoadingBlock } from '../components/Skeleton'
+import Stepper from '../components/Stepper'
 import StatusBadge from '../components/StatusBadge'
 import Verdict from '../components/Verdict'
 import { useEvaluationDetails } from '../hooks/useEvaluation'
@@ -23,6 +25,10 @@ export default function ReportsPage() {
   const { rates } = useRates()
   const evaluation = details.evaluation
 
+  if (!evaluation && details.isLoading) {
+    return <LoadingBlock label="Cargando informe…" lines={5} />
+  }
+
   if (!evaluation) {
     return (
       <EmptyState
@@ -40,6 +46,8 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
+      <Stepper current="/reportes" />
+
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">Informe ejecutivo</p>

@@ -5,6 +5,8 @@ import ComparisonTable from '../components/ComparisonTable'
 import DownloadButtons from '../components/DownloadButtons'
 import EmptyState from '../components/EmptyState'
 import ProsConsMatrix from '../components/ProsConsMatrix'
+import { LoadingBlock } from '../components/Skeleton'
+import Stepper from '../components/Stepper'
 import StatusBadge from '../components/StatusBadge'
 import TcoChart from '../components/TcoChart'
 import { useEvaluationDetails } from '../hooks/useEvaluation'
@@ -31,6 +33,10 @@ export default function ComparisonPage() {
     if (!activeEvaluationId && latestEvaluation?.id) setActiveEvaluationId(latestEvaluation.id)
   }, [activeEvaluationId, latestEvaluation?.id, setActiveEvaluationId])
 
+  if (!evaluation && details.isLoading) {
+    return <LoadingBlock label="Cargando comparativa…" lines={5} />
+  }
+
   if (!evaluation) {
     return (
       <EmptyState
@@ -45,6 +51,8 @@ export default function ComparisonPage() {
 
   return (
     <div className="space-y-6">
+      <Stepper current="/comparativa" />
+
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">Auditoría financiera</p>

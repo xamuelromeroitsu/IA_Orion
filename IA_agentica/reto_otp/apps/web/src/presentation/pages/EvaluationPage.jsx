@@ -1,8 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Activity, ArrowRight, FileText, Play } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
+import { LoadingBlock } from '../components/Skeleton'
 import StatusBadge from '../components/StatusBadge'
+import Stepper from '../components/Stepper'
+import { useToast } from '../hooks/useToast'
 import TracePanel from '../components/TracePanel'
 import Verdict from '../components/Verdict'
 import { useDocuments } from '../hooks/useDocuments'
@@ -29,6 +32,8 @@ export default function EvaluationPage() {
   const { startEvaluation, isStarting, error: startError } = useEvaluation()
   const details = useEvaluationDetails(activeEvaluationId, { poll: true, stopWhenComplete: true })
   const stream = useTraceStream(activeEvaluationId, { enabled: Boolean(activeEvaluationId), isComplete: details.isComplete })
+  const toast = useToast()
+  const notifiedRef = useRef(false)
   const canEvaluate = canRole(role, 'evaluate')
   const progress = computeProgress(stream.events, details.isComplete)
 
@@ -36,11 +41,23 @@ export default function EvaluationPage() {
     if (!activeEvaluationId && latestEvaluation?.id) setActiveEvaluationId(latestEvaluation.id)
   }, [activeEvaluationId, latestEvaluation?.id, setActiveEvaluationId])
 
+  useEffect(() => {
+    if (!activeEvaluationId) {
+      notifiedRef.current = false
+      return
+    }
+    if (details.isComplete && !notifiedRef.current) {
+      notifiedRef.current = true
+      toast.success('Evaluación completada')
+    }
+  }, [activeEvaluationId, details.isComplete, toast])
+
   const handleStart = async () => {
     try {
       await startEvaluation(currentProjectId)
-    } catch {
-      return
+      toast.info('Evaluación iniciada')
+    } catch (caught) {
+      toast.error(caught?.message ?? 'No se pudo iniciar la evaluación')
     }
   }
 
@@ -58,6 +75,8 @@ export default function EvaluationPage() {
 
   return (
     <div className="space-y-6">
+      <Stepper current="/evaluacion" />
+
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">Motor de dictamen</p>
@@ -113,6 +132,8 @@ export default function EvaluationPage() {
           </div>
         </section>
       ) : null}
+
+      {activeEvaluationId && details.isLoading && !details.evaluation ? <LoadingBlock label="Cargando evaluación…" lines={4} /> : null}
 
       {activeEvaluationId ? <TracePanel events={stream.events} isStreaming={stream.isStreaming} /> : null}
 

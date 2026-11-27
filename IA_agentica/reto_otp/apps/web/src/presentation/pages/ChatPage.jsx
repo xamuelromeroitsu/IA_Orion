@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { MessageSquare, MessagesSquare } from 'lucide-react'
 import ChatPanel from '../components/ChatPanel'
 import EmptyState from '../components/EmptyState'
+import { LoadingBlock } from '../components/Skeleton'
 import StatusBadge from '../components/StatusBadge'
 import { useEvaluationDetails } from '../hooks/useEvaluation'
 import { useEvaluationStore } from '../store/evaluation'
@@ -27,6 +28,10 @@ export default function ChatPage() {
         onAction={() => navigate('/evaluacion')}
       />
     )
+  }
+
+  if (details.isLoading && !details.evaluation) {
+    return <LoadingBlock label="Cargando evaluación…" lines={4} />
   }
 
   return (

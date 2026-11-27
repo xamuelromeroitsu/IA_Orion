@@ -3,7 +3,9 @@ import { AlertTriangle, ArrowRight, FileText } from 'lucide-react'
 import AnalysisCard from '../components/AnalysisCard'
 import DocumentList from '../components/DocumentList'
 import EmptyState from '../components/EmptyState'
+import { LoadingBlock } from '../components/Skeleton'
 import StatusBadge from '../components/StatusBadge'
+import Stepper from '../components/Stepper'
 import Uploader from '../components/Uploader'
 import { useDocuments } from '../hooks/useDocuments'
 import { canRole } from '../lib/constants'
@@ -33,6 +35,8 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6">
+      <Stepper current="/documentos" />
+
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">Ingesta multimodal</p>
@@ -72,7 +76,7 @@ export default function DocumentsPage() {
           </div>
           {error ? <p className="text-xs text-red-300">{error.message}</p> : null}
         </div>
-        <DocumentList documents={documents} analyses={analyses} />
+        {isLoading ? <LoadingBlock label="Cargando documentos…" lines={3} /> : <DocumentList documents={documents} analyses={analyses} />}
       </section>
 
       <section className="space-y-4">
@@ -80,7 +84,9 @@ export default function DocumentsPage() {
           <h3 className="text-lg font-semibold text-orion-text">Análisis por documento</h3>
           <p className="text-xs text-slate-400">{analyses.length} análisis disponibles</p>
         </div>
-        {analyses.length ? (
+        {isLoading ? (
+          <LoadingBlock label="Cargando análisis…" lines={3} />
+        ) : analyses.length ? (
           <div className="grid gap-5 xl:grid-cols-2">
             {analyses.map((analysis) => (
               <AnalysisCard

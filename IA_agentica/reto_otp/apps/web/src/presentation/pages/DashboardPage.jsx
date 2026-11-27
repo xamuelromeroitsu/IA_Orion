@@ -6,6 +6,7 @@ import EmptyState from '../components/EmptyState'
 import MagicBento from '../components/MagicBento'
 import ProjectForm from '../components/ProjectForm'
 import StatusBadge from '../components/StatusBadge'
+import Stepper from '../components/Stepper'
 import TcoChart from '../components/TcoChart'
 import { useDocuments } from '../hooks/useDocuments'
 import { useRates } from '../hooks/useRates'
@@ -94,6 +95,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Stepper current="/" />
+
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orion-yellow">Centro de mando</p>

@@ -1,7 +1,11 @@
-import { useRef, useState } from 'react'
-import { Camera, FileSpreadsheet, FileText, Image as ImageIcon, UploadCloud, X } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { Camera, UploadCloud, X } from 'lucide-react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { File01Icon, Image01Icon, Pdf01Icon, Table01Icon } from '@hugeicons/core-free-icons'
 import { useDropzone } from 'react-dropzone'
+import AnimatedList from './AnimatedList'
 import { formatBytes } from '../lib/formatters'
+import { useToast } from '../hooks/useToast'
 
 const maxFileSize = 20 * 1024 * 1024
 
@@ -12,17 +16,45 @@ const acceptedTypes = {
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
 }
 
-function fileIcon(file) {
+const fileIcons = {
+  pdf: Pdf01Icon,
+  spreadsheet: Table01Icon,
+  image: Image01Icon,
+  file: File01Icon
+}
+
+// Los MIME pueden venir vacíos en el navegador, así que el nombre también decide el icono.
+function fileKind(file) {
   const mime = file?.type ?? ''
-  if (mime.includes('spreadsheet')) return FileSpreadsheet
-  if (mime.includes('image')) return ImageIcon
-  return FileText
+  const name = file?.name ?? ''
+  if (mime === 'application/pdf' || /\.pdf$/i.test(name)) return 'pdf'
+  if (mime.includes('spreadsheet') || /\.(xlsx|xls|csv)$/i.test(name)) return 'spreadsheet'
+  if (mime.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(name)) return 'image'
+  return 'file'
+}
+
+function fileIcon(file) {
+  return <HugeiconsIcon icon={fileIcons[fileKind(file)]} size={18} strokeWidth={1.8} />
+}
+
+function fileLabel(file) {
+  const kind = fileKind(file)
+  if (kind === 'spreadsheet') return 'XLSX'
+  if (kind === 'image') return file.name?.split('.').pop()?.toUpperCase() ?? 'IMG'
+  return kind.toUpperCase()
 }
 
 export default function Uploader({ onUpload, isUploading = false, disabled = false, maxFiles = 20 }) {
   const [files, setFiles] = useState([])
   const [validationMessage, setValidationMessage] = useState('')
   const cameraInputRef = useRef(null)
+  const toast = useToast()
+
+  // id estable: al quitar un archivo, los demás conservan su fila y solo entra animada la nueva.
+  const animatedItems = useMemo(
+    () => files.map((file) => ({ id: `${file.name}-${file.size}-${file.lastModified}`, file })),
+    [files]
+  )
 
   const onDrop = (acceptedFiles, rejectedFiles) => {
     setValidationMessage('')
@@ -60,14 +92,18 @@ export default function Uploader({ onUpload, isUploading = false, disabled = fal
   const handleUpload = async () => {
     if (!files.length) {
       setValidationMessage('Selecciona al menos un archivo')
+      toast.error('Selecciona al menos un archivo')
       return
     }
     try {
       await onUpload(files)
+      toast.success(`${files.length} archivo(s) subidos correctamente`)
       setFiles([])
       setValidationMessage('')
     } catch (caught) {
-      setValidationMessage(caught?.message ?? 'No se pudieron subir los archivos')
+      const message = caught?.message ?? 'No se pudieron subir los archivos'
+      setValidationMessage(message)
+      toast.error(message)
     }
   }
 
@@ -102,24 +138,49 @@ export default function Uploader({ onUpload, isUploading = false, disabled = fal
 
       {validationMessage ? <p className="text-xs text-orion-yellow">{validationMessage}</p> : null}
 
-      {files.length ? (
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {files.map((file, index) => {
-            const Icon = fileIcon(file)
+      {animatedItems.length ? (
+        <AnimatedList
+          className="upload-animated-list"
+          items={animatedItems}
+          renderItem={(item, index) => {
+            const kind = fileKind(item.file)
             return (
-              <li key={`${file.name}-${index}`} className="flex items-center gap-3 rounded-xl border border-white/10 bg-orion-background/50 px-3 py-2">
-                <Icon size={17} className="shrink-0 text-sky-300" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-orion-text">{file.name}</p>
-                  <p className="text-[11px] text-slate-400">{formatBytes(file.size)}</p>
-                </div>
-                <button type="button" aria-label={`Quitar ${file.name}`} className="text-slate-400 transition hover:text-red-300" onClick={() => removeFile(index)}>
+              <div className="upload-file-row">
+                <span className={`upload-file-kind upload-file-kind--${kind}`}>
+                  {fileIcon(item.file)}
+                </span>
+                <span className="upload-file-text">
+                  <span className="upload-file-name" title={item.file.name}>{item.file.name}</span>
+                  <span className="upload-file-size">{formatBytes(item.file.size)} · {fileLabel(item.file)}</span>
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Quitar ${item.file.name}`}
+                  className="upload-file-remove"
+                  onClick={(event) => {
+                    // Evita que el clic del botón también seleccione la fila dentro de AnimatedList.
+                    event.stopPropagation()
+                    removeFile(index)
+                  }}
+                >
                   <X size={16} />
                 </button>
-              </li>
+              </div>
             )
-          })}
-        </ul>
+          }}
+          animation="pop"
+          animateOnce
+          stagger={0.055}
+          theme="dark"
+          accentColor="#FACC15"
+          frame={false}
+          showGradients={files.length > 6}
+          displayScrollbar={files.length > 6}
+          width="100%"
+          maxHeight={280}
+          radius={12}
+          gap={8}
+        />
       ) : null}
     </div>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Download, FileSpreadsheet, FileText } from 'lucide-react'
 import { downloadFile, normalizeApiError } from '../lib/api'
+import { useToast } from '../hooks/useToast'
 
 const downloadOptions = [
   { key: 'pdf', label: 'Informe PDF', icon: FileText, path: (id) => `/api/evaluations/${id}/report.pdf`, fileName: 'orion-informe.pdf' },
@@ -11,6 +12,7 @@ const downloadOptions = [
 export default function DownloadButtons({ evaluationId }) {
   const [downloadingKey, setDownloadingKey] = useState('')
   const [error, setError] = useState(null)
+  const toast = useToast()
 
   const handleDownload = async (option) => {
     if (!evaluationId) return
@@ -18,8 +20,11 @@ export default function DownloadButtons({ evaluationId }) {
     setError(null)
     try {
       await downloadFile(option.path(evaluationId), option.fileName)
+      toast.success(`${option.label} descargado`)
     } catch (caught) {
-      setError(normalizeApiError(caught).message)
+      const message = normalizeApiError(caught).message
+      setError(message)
+      toast.error(message)
     } finally {
       setDownloadingKey('')
     }
