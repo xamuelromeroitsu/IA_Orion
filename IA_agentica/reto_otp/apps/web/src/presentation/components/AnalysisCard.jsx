@@ -42,8 +42,63 @@ function ListBlock({ title, items, icon: Icon, tone }) {
   )
 }
 
-export default function AnalysisCard({ analysis, document }) {
+function SpreadsheetPrices({ items, currency, budgetReferenceUsd }) {
+  if (!items.length) return null
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">Precio unitario por artículo</p>
+        <p className="mt-1 text-xs text-slate-400">
+          Se analiza una unidad por artículo; el inventario disponible no se multiplica.
+          {budgetReferenceUsd > 0 ? ` Presupuesto disponible: ${formatUsd(budgetReferenceUsd)}.` : ' No se indicó presupuesto disponible.'}
+        </p>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-white/10">
+        <table className="min-w-full divide-y divide-white/10 text-left text-xs">
+          <thead className="bg-white/5 text-slate-400">
+            <tr>
+              <th className="px-3 py-2 font-semibold">Artículo</th>
+              <th className="px-3 py-2 font-semibold">Cantidad</th>
+              <th className="px-3 py-2 font-semibold">Precio unitario</th>
+              <th className="px-3 py-2 font-semibold">Presupuesto</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {items.map((item, index) => (
+              <tr key={`${item.description}-${index}`} className="text-slate-200">
+                <td className="px-3 py-2">{item.description}</td>
+                <td className="px-3 py-2">{item.qty}</td>
+                <td className="px-3 py-2">
+                  {formatCurrencyValue(item.unitPrice, currency)}
+                  {currency !== 'USD' && item.unitPriceUsd != null ? (
+                    <span className="ml-1 text-slate-400">({formatUsd(item.unitPriceUsd)})</span>
+                  ) : null}
+                </td>
+                <td className="px-3 py-2">
+                  {item.withinBudget == null ? (
+                    <StatusBadge status="neutral" label="Sin presupuesto" />
+                  ) : (
+                    <StatusBadge
+                      status="info"
+                      tone={item.withinBudget ? 'success' : 'warning'}
+                      label={item.withinBudget ? 'Dentro del presupuesto' : 'Supera el presupuesto'}
+                    />
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default function AnalysisCard({ analysis, document, budgetReferenceUsd = 0 }) {
   const currency = analysis?.currency || 'USD'
+  const isSpreadsheet = analysis?.kind === 'spreadsheet'
+  const items = Array.isArray(analysis?.items) ? analysis.items : []
   const pros = toTextList(analysis?.pros)
   const cons = toTextList(analysis?.cons)
   const finePrint = toTextList(analysis?.finePrint)
@@ -80,12 +135,23 @@ export default function AnalysisCard({ analysis, document }) {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <MoneyRow label="Declarado" value={analysis?.declaredTotal} currency={currency} />
-        <MoneyRow label="Recalculado" value={analysis?.calculatedTotal} currency={currency} />
-        <MoneyRow label="Real USD" value={analysis?.realTotalUsd} currency="USD" />
-        <MoneyRow label="TCO USD" value={analysis?.tcoUsd} currency="USD" emphasized />
-      </div>
+      {isSpreadsheet ? (
+        <div className="grid grid-cols-2 gap-2">
+          <MoneyRow label="Suma (1 unidad por artículo)" value={analysis?.calculatedTotal} currency={currency} />
+          <MoneyRow label="TCO (1 unidad c/u)" value={analysis?.tcoUsd} currency="USD" emphasized />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          <MoneyRow label="Declarado" value={analysis?.declaredTotal} currency={currency} />
+          <MoneyRow label="Recalculado" value={analysis?.calculatedTotal} currency={currency} />
+          <MoneyRow label="Real USD" value={analysis?.realTotalUsd} currency="USD" />
+          <MoneyRow label="TCO USD" value={analysis?.tcoUsd} currency="USD" emphasized />
+        </div>
+      )}
+
+      {isSpreadsheet ? (
+        <SpreadsheetPrices items={items} currency={currency} budgetReferenceUsd={budgetReferenceUsd} />
+      ) : null}
 
       {finePrint.length ? (
         <div className="rounded-xl border border-orion-yellow/35 bg-orion-yellow/10 px-4 py-3">
