@@ -20,6 +20,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@layer base {
+  :where(a, button, select, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid #FACC15;
+    outline-offset: 2px;
+  }
+
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 @layer components {
   .orion-card {
     @apply rounded-card border border-white/10 bg-orion-surface/80 shadow-card backdrop-blur;

@@ -4,6 +4,7 @@ import {
   Activity,
   BarChart3,
   ChevronDown,
+  ChevronRight,
   FileText,
   GitCompare,
   LayoutDashboard,
@@ -17,6 +18,10 @@ import {
 import { getInitials } from '../lib/formatters'
 import { roles } from '../lib/constants'
 import { useSessionStore } from '../store/session'
+import { useHideOnScroll } from '../hooks/useHideOnScroll'
+import { useRouteMeta } from '../hooks/useRouteMeta'
+import Footer from './Footer'
+import OfflineBanner from './OfflineBanner'
 
 const navigation = [
   { to: '/', label: 'Panel', icon: LayoutDashboard, end: true },
@@ -33,7 +38,11 @@ const pageTitles = {
   '/evaluacion': 'Evaluación',
   '/comparativa': 'Comparativa',
   '/chat': 'Chat documental',
-  '/reportes': 'Reportes'
+  '/reportes': 'Reportes',
+  '/privacidad': 'Privacidad',
+  '/terminos': 'Términos de uso',
+  '/seguridad': 'Seguridad',
+  '/accesibilidad': 'Accesibilidad'
 }
 
 export default function AppShell() {
@@ -43,14 +52,17 @@ export default function AppShell() {
   const role = useSessionStore((state) => state.role)
   const setRole = useSessionStore((state) => state.setRole)
   const connectionStatus = useSessionStore((state) => state.connectionStatus)
+  const { isHidden, headerRef } = useHideOnScroll({ resetKey: location.pathname })
 
   const isOnline = connectionStatus === 'online'
   const connectionLabel = isOnline ? 'En línea' : connectionStatus === 'offline' ? 'Sin conexión' : 'Verificando'
   const userRoleLabel = roles.find((item) => item.id === user?.role)?.label ?? user?.role ?? 'Demo'
   const currentTitle = pageTitles[location.pathname] ?? 'ORION'
 
+  useRouteMeta(currentTitle)
+
   return (
-    <div className="min-h-screen bg-orion-background text-orion-text">
+    <div className="flex min-h-screen flex-col bg-orion-background text-orion-text">
       {isMenuOpen ? (
         <button type="button" aria-label="Cerrar menú" className="fixed inset-0 z-30 bg-black/60 lg:hidden" onClick={() => setIsMenuOpen(false)} />
       ) : null}
@@ -85,7 +97,7 @@ export default function AppShell() {
                 end={item.end}
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  `flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                     isActive ? 'bg-orion-blue/20 text-orion-yellow ring-1 ring-inset ring-orion-blue/40' : 'text-slate-300 hover:bg-white/5 hover:text-orion-text'
                   }`
                 }
@@ -106,14 +118,31 @@ export default function AppShell() {
         </div>
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-orion-background/85 px-4 py-3 backdrop-blur lg:px-8">
+      <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[70] focus:rounded-lg focus:bg-orion-yellow focus:px-3 focus:py-2 focus:text-xs focus:font-bold focus:text-orion-background">
+          Saltar al contenido
+        </a>
+
+        <OfflineBanner visible={connectionStatus === 'offline'} onRetry={() => window.location.reload()} />
+
+        <header
+          ref={headerRef}
+          aria-hidden={isHidden}
+          inert={isHidden ? '' : undefined}
+          className={`sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-orion-background/85 px-4 py-3 backdrop-blur transition-[transform,opacity] duration-200 motion-reduce:transition-none lg:px-8 ${
+            isHidden ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <button type="button" aria-label="Abrir menú" className="text-slate-300 lg:hidden" onClick={() => setIsMenuOpen(true)}>
+            <button type="button" aria-label="Abrir menú" className="flex min-h-11 items-center text-slate-300 lg:hidden" onClick={() => setIsMenuOpen(true)}>
               <Menu size={20} />
             </button>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500">Espacio de trabajo</p>
+              <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500">
+                Espacio de trabajo
+                <ChevronRight size={11} aria-hidden="true" />
+                <span className="text-slate-400">{currentTitle}</span>
+              </p>
               <h1 className="text-base font-semibold text-orion-text">{currentTitle}</h1>
             </div>
           </div>
@@ -127,7 +156,7 @@ export default function AppShell() {
             <div className="relative">
               <select
                 aria-label="Rol activo"
-                className="appearance-none rounded-xl border border-white/10 bg-orion-surface py-2 pl-3 pr-8 text-xs font-semibold text-orion-text outline-none focus:border-orion-blue"
+                className="min-h-11 appearance-none rounded-xl border border-white/10 bg-orion-surface py-2 pl-3 pr-8 text-xs font-semibold text-orion-text outline-none focus:border-orion-blue"
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
               >
@@ -137,7 +166,7 @@ export default function AppShell() {
                   </option>
                 ))}
               </select>
-              <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-2.5 text-slate-400" />
+              <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-3 text-slate-400" />
             </div>
 
             <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1 pl-1 pr-3">
@@ -152,9 +181,11 @@ export default function AppShell() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1500px] px-4 py-6 lg:px-8">
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-[1500px] flex-1 px-4 py-6 outline-none lg:px-8">
           <Outlet />
         </main>
+
+        <Footer />
       </div>
     </div>
   )
