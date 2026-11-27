@@ -53,19 +53,30 @@ La planificación de épicas y tareas está en [AGILE_PLAN.md](AGILE_PLAN.md).
 
 ```dotenv
 PORT=4000
+TZ=America/Caracas
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+DATABASE_URL=
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-3.8-flash
-GEMINI_EXTRACTION_MODEL=gemini-3.5-flash-lite
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_EXTRACTION_MODEL=gemini-2.5-flash-lite
 TAVILY_API_KEY=
-AES_KEY=
 BCV_SOURCE_URL=https://www.bcv.org.ve/
-TZ=America/Caracas
+BCV_FALLBACK_RATE=130
+AES_KEY=
 MAX_PROPOSALS=20
 ALLOWED_MIME=application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+DEMO_MODE=true
+DEMO_USER_ID=00000000-0000-4000-8000-000000000001
+
+VITE_API_URL=http://localhost:4000
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
 ```
+
+> El frontend solo consume `VITE_API_URL`; las variables `VITE_SUPABASE_*` se conservan como placeholders para una futura sesión de Auth en el navegador, pero hoy no se usan. `BCV_FALLBACK_RATE` se aplica solo si `bcv.org.ve` no responde. `DEMO_MODE` y `DEMO_USER_ID` alimentan el usuario demo del header `x-demo-role`.
 
 > Los identificadores de modelo se mantienen configurables: verificar los nombres vigentes en Google AI Studio al implementar y ajustar `GEMINI_MODEL` / `GEMINI_EXTRACTION_MODEL` sin tocar código.
 
@@ -77,18 +88,22 @@ Tablas principales de `apps/api/supabase/schema.sql`. La nomenclatura (`snake_ca
 
 | Tabla | Campos clave |
 | --- | --- |
-| `projects` | `id uuid`, `name`, `description`, `location`, `budget_reference_usd numeric`, `status`, `owner_id`, `created_at`, `updated_at` |
-| `project_documents` | `id`, `project_id`, `storage_path`, `mime`, `iv bytea`, `tag bytea`, `sha256`, `uploaded_by` |
+| `projects` | `id uuid`, `name`, `description`, `location`, `budget_reference_usd numeric`, `currency char(3)`, `status`, `owner_id`, `created_at`, `updated_at` |
+| `project_documents` | `id`, `project_id`, `file_name`, `mime`, `kind`, `storage_path`, `iv text`, `tag text`, `sha256`, `extracted_text`, `sheets jsonb`, `uploaded_by` |
 | `suppliers` | `id`, `fiscal_id unique`, `name`, `location`, `contact`, `created_at` |
-| `evaluations` | `id`, `project_id`, `status`, `started_at`, `finished_at`, `created_by`, `commit_hash`, `repository`, `summary jsonb` |
-| `proposals` | `id`, `evaluation_id`, `supplier_id`, `file_name`, `identifier`, `storage_path`, `iv`, `tag`, `mime`, `processed_at`, `currency`, `declared_total`, `real_total`, `decision`, `reason` |
+| `evaluations` | `id`, `project_id`, `status`, `started_at`, `finished_at`, `ranking jsonb`, `comparison jsonb`, `summary`, `recommended_id`, `exchange_rate`, `exchange_rate_date`, `reviewed_by text`, `review_notes`, `approved_by text` |
+| `proposals` | `id`, `evaluation_id`, `supplier_id`, `file_name`, `identifier`, `storage_path`, `iv text`, `tag text`, `mime`, `processed_at`, `currency`, `declared_total`, `real_total`, `decision`, `reason` |
 | `proposal_items` | `id`, `proposal_id`, `description`, `qty`, `unit_price`, `subtotal_declared`, `subtotal_calculated`, `reference_price_usd`, `source_url` |
 | `findings` | `id`, `proposal_id`, `type`, `severity`, `detail`, `evidence`, `amount_impact`, `source_url` |
-| `audit_log` | `id`, `project_id`, `user_id`, `action`, `entity`, `entity_id`, `metadata jsonb`, `created_at` |
+| `document_analyses` | `id`, `project_id`, `document_id`, `file_name`, `supplier`, `declared_total`, `calculated_total`, `real_total_usd`, `tco_usd`, `items jsonb`, `findings jsonb`, `hidden_costs jsonb`, `warranty_months`, `injection_detected`, `scope_complete`, `discard_reasons jsonb`, `source` |
 | `rate_cache` | `id`, `currency`, `rate_usd`, `source`, `fetched_at`, `effective_date` |
-| `chat_messages` | `id`, `project_id`, `user_id`, `role`, `content`, `created_at` |
+| `audit_log` | `id`, `project_id`, `user_id`, `action`, `entity`, `entity_id`, `metadata jsonb`, `created_at` |
+| `chat_messages` | `id`, `project_id`, `user_id`, `role`, `content`, `sources jsonb`, `created_at` |
 
 **Estados del proyecto:** `recepcion` → `evaluacion` → `revision_comite` → `adjudicado` | `cerrado`.
+**Estados de evaluación:** `running` → `completed` / `failed` en la API; `en_curso`, `en_revision`, `aprobado` y `rechazado` se conservan para datos históricos y la Edge Function.
+
+La migración `002_align_api_contract.sql` amplía los `check` de `project_documents.kind` y `evaluations.status`, agrega las columnas de `document_analyses` y `chat_messages` que consume el informe, guarda `iv`/`tag` en Base64 como `text` y habilita `application/octet-stream` en el bucket `documents`. `schema.sql` ya incluye esos cambios.
 
 **Políticas RLS:** lectura para los cuatro roles según proyecto; escritura restringida a cargador/evaluador; aprobación solo para `aprobador`; `auditor` únicamente `SELECT`. El `service_role` se usa solo en el backend para auditoría y cifrado.
 
