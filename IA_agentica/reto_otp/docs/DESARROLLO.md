@@ -27,6 +27,22 @@ npm run dev
 npm run batch -- --input "/home/participante/Escritorio/IA_agentica/Reto_Agente_Evaluador_de_Propuestas_de_Servicios" --out salida.json
 ```
 
+### Indicadores del panel
+
+Las tarjetas de métricas del panel usan `MagicBento` y los iconos de Hugeicons. Sus colores están adaptados al tema ORION (superficie `#05070B`, tarjetas `#111827` → `#070B12`, texto `#F8FAFC`) y cada tarjeta navega a su pantalla relacionada. La personalización visual está en `apps/web/src/presentation/components/MagicBento.css`; la lógica de métricas sigue en `DashboardPage.jsx`.
+
+Para volver a generar el componente desde el registro React Bits:
+
+```bash
+npx shadcn@latest add @react-bits/MagicBento-JS-CSS -c apps/web
+```
+
+### Bandeja de subida animada
+
+La bandeja temporal de `Uploader.jsx` usa una copia local de `AnimatedList` de React Bits. `fileKind` decide el icono Hugeicons por MIME o extensión: PDF rojo, XLSX verde, imagen azul y archivo genérico gris. `animatedItems` genera ids estables para que, al quitar una fila, las demás no se reanimated y solo entren las nuevas.
+
+El layout propio se pasa por `renderItem`: nombre, tamaño y botón `X`. Ese botón llama a `event.stopPropagation()` para que quitar un archivo no seleccione también la fila. Los estilos `.upload-*` viven al final de `apps/web/src/presentation/components/AnimatedList.css`.
+
 ## 3. Estructura de carpetas prevista
 
 La estructura está dividida en dos documentos, uno por aplicación:

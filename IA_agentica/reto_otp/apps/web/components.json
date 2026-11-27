@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": false,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/styles/index.css",
+    "baseColor": "slate",
+    "cssVariables": false,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/presentation/components",
+    "ui": "@/presentation/components/ui",
+    "utils": "@/presentation/lib/utils",
+    "lib": "@/presentation/lib",
+    "hooks": "@/presentation/hooks"
+  },
+  "iconLibrary": "hugeicons",
+  "registries": {
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
+  }
+}
