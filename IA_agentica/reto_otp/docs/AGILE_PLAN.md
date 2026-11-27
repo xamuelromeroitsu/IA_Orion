@@ -130,3 +130,4 @@ T0.3 → T1.2 → T5.3 → T5.1 → T5.2
 | T1.5 | Contexto de operación/sector por proyecto y rechazo de análisis sin evidencia | Done |
 | T5.3 | Alinear políticas RLS y esquema con los repositorios de la API | Done |
 | T6.3 | Ensayo final: demo completa y revisión de secretos en Git | Done |
+| T2.8 | Aislar fallos de extracción y guardado por archivo | Done |

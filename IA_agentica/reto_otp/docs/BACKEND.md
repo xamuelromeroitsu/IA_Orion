@@ -151,6 +151,7 @@ upload.js → classify.js → (pdf.js | vision.js | spreadsheet.js)
 ## Lectura y presupuesto
 
 - `TextExtractor.extractDocument` selecciona PDF, imagen o XLSX por MIME.
+- `POST /projects/:id/documents` procesa cada archivo de forma aislada: los fallos de extracción/guardado se informan en `uploadErrors`, y los fallos de análisis de documentos ya guardados en `analysisErrors`; ninguno cancela los archivos restantes.
 - Los PDF digitales usan `pdf-parse`; si no producen texto, el documento queda como ilegible o pasa a visión cuando Gemini recibe el contenido visual.
 - `XlsxReader.parseXlsx` busca la fila real de encabezados, normaliza las filas y recalcula fórmulas simples sin usar valores cacheados.
 - Los XLSX representan cada fila como una unidad. El sistema no multiplica el precio por inventario o stock.
@@ -159,6 +160,8 @@ upload.js → classify.js → (pdf.js | vision.js | spreadsheet.js)
 - La ejecución de lote recibe argumentos mediante `npm run batch -- --input <ruta> --out <archivo>`.
 
 Los análisis reciben el contexto `operationType`/`businessType` y presupuesto disponible del proyecto. En Excel cada fila se normaliza a una unidad, sin multiplicarla por el stock disponible; el precio unitario se convierte a USD para marcar si cabe en el presupuesto. El chequeo fijo de periféricos y equipos solo se aplica a proyectos de computación; otros sectores usan el alcance definido por la IA con ese contexto. La letra pequeña solo se presenta con evidencia textual y cuando el documento es legal o hay indicios concretos de fraude; una lista de precios normal no genera cláusulas ni costos ocultos supuestos. Si la IA declara que el archivo es ilegible, no hay contexto suficiente o la respuesta no incluye los datos mínimos, se devuelve `422 document_not_analyzable` y no se persiste un análisis incompleto. El fallback determinista también rechaza documentos sin texto y datos extraíbles; no infiere el proveedor del nombre del archivo ni declara como total los subtotales calculados.
+
+Las imágenes requieren `GEMINI_API_KEY` para su análisis visual; sin ella se guardan y pueden abrirse, pero su análisis queda reportado en `analysisErrors` con código `image_analysis_unavailable`. Los archivos Excel sí se leen localmente y el lote continúa con los demás archivos aunque una imagen no pueda analizarse. No se requiere un cambio nuevo en el esquema de Supabase para esta gestión de errores; sí deben estar aplicadas las migraciones existentes, que crean el bucket `documents` y permiten almacenar documentos cifrados.
 
 `GET /documents/:id/file` consulta `project_documents.id`, descifra el archivo usando `storage_path`, `iv` y `tag`, y sirve los `.xlsx` con el MIME de Excel y nombre inline. Si Supabase no devuelve una fila, se consulta el repositorio local como fallback. Cuando se configura `SUPABASE_URL`, la API exige `SUPABASE_SERVICE_ROLE_KEY`; no usa una clave pública que no pueda leer los registros y objetos protegidos por RLS.
 

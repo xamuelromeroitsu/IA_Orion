@@ -141,11 +141,17 @@ export class DeterministicAuditor extends AiAuditorPort {
     this.source = 'deterministic';
   }
 
-  async analyze({ fileName, text = '', sheets = [] }) {
+  async analyze({ fileName, mimeType = '', kind = '', text = '', sheets = [] }) {
     const normalized = stripAccents(text).toLowerCase();
     const items = [...itemsFromSheets(sheets), ...itemsFromText(text)];
     const declaredTotal = findDeclaredTotal(text, sheets, 0);
     if ((text.trim().length < 30 && items.length === 0) || (items.length === 0 && declaredTotal <= 0)) {
+      if (kind === 'image' || mimeType.startsWith('image/')) {
+        const error = new Error('El análisis de imágenes requiere configurar GEMINI_API_KEY en la API.');
+        error.status = 503;
+        error.code = 'image_analysis_unavailable';
+        throw error;
+      }
       const error = new Error(
         'No se pudo analizar el documento porque no es legible o no contiene información suficiente. Verifique el archivo y vuelva a intentarlo.'
       );
