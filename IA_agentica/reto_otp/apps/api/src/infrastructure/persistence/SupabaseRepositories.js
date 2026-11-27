@@ -13,6 +13,8 @@ function mapProject(record) {
     id: record.id,
     name: record.name,
     description: record.description ?? '',
+    operationType: record.operation_type ?? 'compra',
+    businessType: record.business_type ?? '',
     location: record.location ?? '',
     budgetReferenceUsd: Number(record.budget_reference_usd ?? 0),
     status: record.status,
@@ -31,6 +33,8 @@ function mapDocument(record) {
     kind: record.kind,
     size: Number(record.size_bytes ?? 0),
     storagePath: record.storage_path,
+    iv: record.iv,
+    tag: record.tag,
     uploadedAt: record.created_at,
     extractedText: record.extracted_text ?? '',
     sheets: record.sheets ?? []
@@ -113,7 +117,7 @@ export class SupabaseProjectRepository extends LocalProjectRepository {
   async list() {
     return withFallback(async () => {
       const { data, error } = await this.client.from('projects')
-        .select('id,name,description,location,budget_reference_usd,status,created_at,updated_at')
+        .select('id,name,description,operation_type,business_type,location,budget_reference_usd,status,created_at,updated_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []).map(mapProject);
@@ -123,7 +127,7 @@ export class SupabaseProjectRepository extends LocalProjectRepository {
   async getById(id) {
     return withFallback(async () => {
       const { data, error } = await this.client.from('projects')
-        .select('id,name,description,location,budget_reference_usd,status,created_at,updated_at')
+        .select('id,name,description,operation_type,business_type,location,budget_reference_usd,status,created_at,updated_at')
         .eq('id', id).maybeSingle();
       if (error) throw error;
       return mapProject(data);
@@ -137,6 +141,8 @@ export class SupabaseProjectRepository extends LocalProjectRepository {
         id: project.id,
         name: project.name,
         description: project.description,
+        operation_type: project.operationType,
+        business_type: project.businessType,
         location: project.location,
         budget_reference_usd: project.budgetReferenceUsd,
         status: project.status,
@@ -174,18 +180,21 @@ export class SupabaseDocumentRepository extends LocalDocumentRepository {
   }
 
   async getById(id) {
-    return withFallback(async () => {
+    const document = await withFallback(async () => {
       const { data, error } = await this.client.from('project_documents')
-        .select('id,project_id,file_name,mime,kind,size_bytes,storage_path,extracted_text,sheets,created_at')
+        .select('id,project_id,file_name,mime,kind,size_bytes,storage_path,iv,tag,extracted_text,sheets,created_at')
         .eq('id', id).maybeSingle();
       if (error) throw error;
       return mapDocument(data);
-    }, () => super.getById(id));
+    }, async () => null);
+    return document ?? super.getById(id);
   }
 
   async save(document) {
     await super.save(document);
-    await withFallback(async () => {
+    if (!this.client) return document;
+
+    try {
       const { error } = await this.client.from('project_documents').insert({
         id: document.id,
         project_id: document.projectId,
@@ -200,8 +209,19 @@ export class SupabaseDocumentRepository extends LocalDocumentRepository {
         iv: document.iv ?? null,
         tag: document.tag ?? null
       });
-      if (error) throw error;
-    }, async () => undefined);
+      if (error) {
+        const saveError = new Error('No se pudo registrar el documento en project_documents', { cause: error });
+        saveError.status = 500;
+        saveError.code = 'document_record_save_failed';
+        throw saveError;
+      }
+    } catch (cause) {
+      if (cause.code === 'document_record_save_failed') throw cause;
+      const saveError = new Error('No se pudo registrar el documento en project_documents', { cause });
+      saveError.status = 500;
+      saveError.code = 'document_record_save_failed';
+      throw saveError;
+    }
     return document;
   }
 }
