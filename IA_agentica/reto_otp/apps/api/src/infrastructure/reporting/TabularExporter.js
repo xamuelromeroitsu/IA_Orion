@@ -2,12 +2,12 @@ import * as XLSX from 'xlsx';
 import { stringify } from 'csv-stringify/sync';
 
 const headers = [
-  ['Proveedor', 'Archivo', 'Declarado', 'Recalculado', 'Costos ocultos USD', 'TCO USD', 'Desviación %', 'Decisión', 'Razón']
+  ['Proveedor / base', 'Archivo', 'Total declarado / base (Excel: 1 unidad por artículo)', 'Recalculado', 'Costos ocultos USD', 'TCO USD', 'Desviación %', 'Decisión', 'Razón']
 ];
 
 function rowsFrom(evaluation) {
   return evaluation.comparison.map((row) => [
-    row.supplier,
+    row.kind === 'spreadsheet' ? `${row.supplier} (Excel: 1 unidad por artículo)` : row.supplier,
     row.fileName,
     row.declaredTotal.toFixed(2),
     row.calculatedTotal.toFixed(2),
