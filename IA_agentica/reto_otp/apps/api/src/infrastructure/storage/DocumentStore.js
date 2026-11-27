@@ -5,6 +5,12 @@ import { dataDirectory } from '../persistence/LocalStore.js';
 
 const filesDirectory = path.join(dataDirectory, 'files');
 
+function storageError(message, cause) {
+  const error = new Error(message, { cause });
+  error.status = 500;
+  return error;
+}
+
 function createKey(aesKey) {
   if (aesKey) {
     const decoded = Buffer.from(aesKey, 'base64');
@@ -14,10 +20,11 @@ function createKey(aesKey) {
 }
 
 export class DocumentStore {
-  constructor({ client, aesKey, bucket = 'documents' } = {}) {
+  constructor({ client, aesKey, bucket = 'documents', logger } = {}) {
     this.client = client;
     this.key = createKey(aesKey);
     this.bucket = bucket;
+    this.logger = logger;
   }
 
   encrypt(buffer) {
@@ -42,13 +49,12 @@ export class DocumentStore {
     const localPath = path.join(filesDirectory, `${id}.bin`);
     await fs.writeFile(localPath, ciphertext);
     if (this.client) {
-      try {
-        await this.client.storage.from(this.bucket).upload(storagePath, ciphertext, {
-          contentType: 'application/octet-stream',
-          upsert: true
-        });
-      } catch {
-        this.client = null;
+      const { error } = await this.client.storage.from(this.bucket).upload(storagePath, ciphertext, {
+        contentType: 'application/octet-stream',
+        upsert: true
+      });
+      if (error) {
+        throw storageError(`No se pudo guardar el archivo cifrado: ${storagePath}`, error);
       }
     }
     return {
@@ -62,9 +68,44 @@ export class DocumentStore {
   }
 
   async read(document) {
-    const ciphertext = await fs.readFile(document.localPath ?? path.join(filesDirectory, `${document.id}.bin`));
+    let ciphertext;
+    if (this.client && document.storagePath) {
+      const { data, error } = await this.client.storage.from(this.bucket).download(document.storagePath);
+      if (error) {
+        throw storageError(`No se pudo descargar el archivo cifrado: ${document.id}`, error);
+      }
+      if (!data) throw storageError(`No se encontró el archivo cifrado: ${document.id}`);
+      ciphertext = Buffer.from(await data.arrayBuffer());
+    } else {
+      try {
+        ciphertext = await fs.readFile(document.localPath ?? path.join(filesDirectory, `${document.id}.bin`));
+      } catch (error) {
+        throw storageError(`No se pudo leer el archivo cifrado: ${document.id}`, error);
+      }
+    }
+
     const iv = Buffer.isBuffer(document.iv) ? document.iv : Buffer.from(document.iv ?? '', 'base64');
     const tag = Buffer.isBuffer(document.tag) ? document.tag : Buffer.from(document.tag ?? '', 'base64');
-    return this.decrypt(ciphertext, iv, tag);
+    this.logger?.info({
+      documentId: document.id,
+      ivPresent: iv.length > 0,
+      ivBytes: iv.length,
+      tagBytes: tag.length,
+      mime: document.mime,
+      storagePath: document.storagePath
+    }, 'Descifrando documento');
+
+    if (iv.length !== 12 || tag.length !== 16) {
+      const error = new Error(`Metadatos de cifrado inválidos para el documento ${document.id}`);
+      error.status = 500;
+      throw error;
+    }
+
+    try {
+      return this.decrypt(ciphertext, iv, tag);
+    } catch (error) {
+      error.status = 500;
+      throw error;
+    }
   }
 }
