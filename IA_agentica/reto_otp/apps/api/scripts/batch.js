@@ -58,6 +58,8 @@ async function main() {
   const project = await manageProjectWorkflowUseCase.createProject({
     name: `Lote ${path.basename(inputDirectory)}`,
     description: 'Evaluación automática por modo lote',
+    operationType: 'compra',
+    businessType: 'Equipos de computación',
     location: 'Caracas, Venezuela'
   });
 
